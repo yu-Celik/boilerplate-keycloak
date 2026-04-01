@@ -1,0 +1,19 @@
+name: Disable inactive accounts (180 days)
+schedule:
+  after: 1d
+  batch-size: 50
+if: user-last-login-before(180d)
+steps:
+  - uses: notify-user
+    with:
+      subject: "Votre compte sera bientôt désactivé"
+      message: |
+        <p>Bonjour ${user.firstName},</p>
+
+        <p>Votre compte sur ${realm.displayName} est inactif depuis plus de 6 mois.
+        Il sera désactivé dans 7 jours si vous ne vous reconnectez pas.</p>
+
+        <p>Cordialement,<br/>
+        L'équipe ${realm.displayName}</p>
+  - uses: disable-user
+    after: 7d

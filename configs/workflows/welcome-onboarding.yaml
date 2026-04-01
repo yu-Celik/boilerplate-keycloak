@@ -1,0 +1,16 @@
+name: Welcome onboarding
+on: user-created
+steps:
+  - uses: notify-user
+    with:
+      subject: "Bienvenue sur la plateforme !"
+      message: |
+        <p>Bonjour ${user.firstName} ${user.lastName},</p>
+
+        <p>Bienvenue sur ${realm.displayName} !</p>
+
+        <p>Votre compte a été créé avec succès. Vous pouvez maintenant
+        vous connecter et créer votre espace de travail.</p>
+
+        <p>Cordialement,<br/>
+        L'équipe ${realm.displayName}</p>

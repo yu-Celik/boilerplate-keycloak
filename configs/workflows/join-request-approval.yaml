@@ -1,0 +1,18 @@
+name: Organization join request notification
+on: user-attribute-updated
+if: user-attribute-exists(join-request-org)
+steps:
+  - uses: notify-user
+    with:
+      subject: "Demande d'adhésion à une organisation"
+      to: "${user.attributes.join-request-admin-email}"
+      message: |
+        <p>Bonjour,</p>
+
+        <p>${user.firstName} ${user.lastName} (${user.email}) demande à rejoindre
+        votre organisation.</p>
+
+        <p>Vous pouvez accepter ou refuser cette demande depuis votre tableau de bord.</p>
+
+        <p>Cordialement,<br/>
+        L'équipe ${realm.displayName}</p>
