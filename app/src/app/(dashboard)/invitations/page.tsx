@@ -1,24 +1,10 @@
-import { auth } from "@/lib/auth";
-import {
-  listOrgInvitations,
-  sendOrgInvitation,
-  listOrganizations,
-} from "@/lib/keycloak-admin";
-import { redirect } from "next/navigation";
+import { getActiveOrgId, getAllOrgIds } from "@/lib/active-org";
+import { listOrgInvitations } from "@/lib/keycloak-admin";
+import { inviteUser, revokeInvitation } from "./actions";
 import type { OrgInvitation } from "@/types";
 
-async function getFirstOrgId() {
-  try {
-    const orgs = await listOrganizations();
-    return orgs.length > 0 ? orgs[0].id : null;
-  } catch {
-    return null;
-  }
-}
-
 export default async function InvitationsPage() {
-  const session = await auth();
-  const orgId = await getFirstOrgId();
+  const orgId = await getActiveOrgId();
 
   let invitations: OrgInvitation[] = [];
   if (orgId) {
@@ -27,19 +13,17 @@ export default async function InvitationsPage() {
     } catch {
       // Admin API may not be available
     }
-  }
-
-  async function handleInvite(formData: FormData) {
-    "use server";
-    const email = formData.get("email") as string;
-    if (!email || !orgId) return;
-
-    try {
-      await sendOrgInvitation(orgId, email);
-    } catch (error) {
-      console.error("Failed to send invitation:", error);
+  } else {
+    // "Tous" mode — aggregate invitations from all orgs
+    const orgIds = await getAllOrgIds();
+    for (const id of orgIds) {
+      try {
+        const orgInvitations = await listOrgInvitations(id);
+        invitations.push(...orgInvitations);
+      } catch {
+        // skip
+      }
     }
-    redirect("/invitations");
   }
 
   return (
@@ -47,26 +31,32 @@ export default async function InvitationsPage() {
       <div>
         <h1 className="text-3xl font-bold">Invitations</h1>
         <p className="text-muted-foreground">
-          Invite collaborators to your organization
+          Gérez les invitations de votre organisation
         </p>
       </div>
 
-      {/* Invite form */}
-      <form action={handleInvite} className="flex gap-3">
-        <input
-          type="email"
-          name="email"
-          placeholder="colleague@example.com"
-          required
-          className="flex-1 rounded-md border bg-background px-4 py-2 text-sm"
-        />
-        <button
-          type="submit"
-          className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
-        >
-          Send Invitation
-        </button>
-      </form>
+      {/* Invite form — only when a specific org is selected */}
+      {orgId ? (
+        <form action={inviteUser} className="flex gap-3">
+          <input
+            type="email"
+            name="email"
+            placeholder="collaborateur@exemple.com"
+            required
+            className="flex-1 rounded-md border bg-background px-4 py-2 text-sm"
+          />
+          <button
+            type="submit"
+            className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
+          >
+            Envoyer
+          </button>
+        </form>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Sélectionnez une organisation pour envoyer des invitations.
+        </p>
+      )}
 
       {/* Invitations list */}
       <div className="rounded-lg border">
@@ -77,21 +67,26 @@ export default async function InvitationsPage() {
                 Email
               </th>
               <th className="px-4 py-3 text-left text-sm font-medium">
-                Status
+                Statut
               </th>
               <th className="px-4 py-3 text-left text-sm font-medium">
-                Sent
+                Envoyée le
               </th>
+              {orgId && (
+                <th className="px-4 py-3 text-right text-sm font-medium">
+                  Actions
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
             {invitations.length === 0 ? (
               <tr>
                 <td
-                  colSpan={3}
+                  colSpan={orgId ? 4 : 3}
                   className="px-4 py-8 text-center text-muted-foreground"
                 >
-                  No invitations sent yet
+                  Aucune invitation envoyée
                 </td>
               </tr>
             ) : (
@@ -106,12 +101,29 @@ export default async function InvitationsPage() {
                           : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                       }`}
                     >
-                      {inv.status}
+                      {inv.status === "PENDING" ? "En attente" : "Expirée"}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">
-                    {new Date(inv.createdTimestamp).toLocaleDateString()}
+                    {new Date(inv.sentDate * 1000).toLocaleDateString("fr-FR")}
                   </td>
+                  {orgId && (
+                    <td className="px-4 py-3 text-right">
+                      <form action={revokeInvitation} className="inline">
+                        <input
+                          type="hidden"
+                          name="invitationId"
+                          value={inv.id}
+                        />
+                        <button
+                          type="submit"
+                          className="text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                        >
+                          Révoquer
+                        </button>
+                      </form>
+                    </td>
+                  )}
                 </tr>
               ))
             )}

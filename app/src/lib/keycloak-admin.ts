@@ -60,6 +60,13 @@ export async function getOrganization(orgId: string) {
   return res.json();
 }
 
+export async function getOrgByAlias(alias: string) {
+  const res = await adminFetch(`/organizations?search=${encodeURIComponent(alias)}`);
+  if (!res.ok) throw new Error(`Failed to search organizations: ${res.status}`);
+  const orgs = await res.json();
+  return orgs.find((o: { alias: string }) => o.alias === alias) ?? null;
+}
+
 export async function createOrganization(
   name: string,
   alias: string,
@@ -123,14 +130,20 @@ export async function getOrgGroups(orgId: string) {
   return res.json();
 }
 
+export async function listGroupMembers(orgId: string, groupId: string) {
+  const res = await adminFetch(`/organizations/${orgId}/groups/${groupId}/members`);
+  if (!res.ok) throw new Error(`Failed to list group members: ${res.status}`);
+  return res.json();
+}
+
 export async function addMemberToGroup(
   orgId: string,
   groupId: string,
   userId: string
 ) {
   const res = await adminFetch(
-    `/organizations/${orgId}/groups/${groupId}/members`,
-    { method: "POST", body: JSON.stringify([userId]) }
+    `/organizations/${orgId}/groups/${groupId}/members/${userId}`,
+    { method: "PUT" }
   );
   if (!res.ok) {
     const body = await res.text();
@@ -166,12 +179,22 @@ export async function listOrgInvitations(orgId: string) {
 }
 
 export async function sendOrgInvitation(orgId: string, email: string) {
-  const res = await adminFetch(`/organizations/${orgId}/invitations`, {
-    method: "POST",
-    body: JSON.stringify({ email }),
-  });
-  if (!res.ok) throw new Error(`Failed to send invitation: ${res.status}`);
-  return res.json();
+  const token = await getServiceAccountToken();
+  const res = await fetch(
+    `${KC_BASE}/admin/realms/boilerplate/organizations/${orgId}/members/invite-user`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({ email }),
+    }
+  );
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Failed to send invitation: ${res.status} ${body}`);
+  }
 }
 
 export async function deleteOrgInvitation(orgId: string, invitationId: string) {

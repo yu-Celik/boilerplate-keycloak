@@ -99,8 +99,8 @@ export async function createOrganizationAndRefresh(formData: FormData): Promise<
   for (const groupName of DEFAULT_GROUPS) {
     try {
       const groupId = await createOrgGroup(org.id, groupName);
-      // Add creator to Admin group
-      if (groupName === "Admin" && groupId) {
+      // Add creator to Admin + Members groups
+      if ((groupName === "Admin" || groupName === "Members") && groupId) {
         await addMemberToGroup(org.id, groupId, userId).catch(() => {
           console.warn(`Failed to add user to ${groupName} group`);
         });

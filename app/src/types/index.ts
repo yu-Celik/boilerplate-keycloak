@@ -46,8 +46,10 @@ export interface OrgInvitation {
   id: string;
   email: string;
   status: "PENDING" | "EXPIRED";
-  createdTimestamp: number;
-  expirationTimestamp?: number;
+  organizationId: string;
+  sentDate: number;
+  expiresAt: number;
+  inviteLink?: string;
 }
 
 export interface OrgGroup {
