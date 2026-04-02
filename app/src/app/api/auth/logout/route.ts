@@ -24,7 +24,7 @@ export async function GET(request: Request) {
   }
 
   // Redirect to self with KC URL param — cookies are deleted on THIS response (same origin)
-  const selfUrl = new URL(request.url);
+  const selfUrl = new URL("/api/auth/logout", process.env.NEXTAUTH_URL!);
   selfUrl.searchParams.set("kc", kcLogoutUrl);
 
   const response = NextResponse.redirect(selfUrl);
