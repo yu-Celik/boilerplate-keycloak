@@ -99,6 +99,8 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
     },
     async session({ session, token }) {
       session.error = token.error;
+      // Store idToken for KC logout (id_token_hint to skip confirmation)
+      (session as unknown as Record<string, unknown>).idToken = token.idToken;
 
       if (token.accessToken) {
         try {
