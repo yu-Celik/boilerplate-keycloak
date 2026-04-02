@@ -272,10 +272,12 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "boilerplate-app-secret",
       "redirectUris": [
-        "http://localhost:3990/api/auth/callback/keycloak"
+        "http://localhost:3990/api/auth/callback/keycloak",
+        "https://*/api/auth/callback/keycloak"
       ],
       "webOrigins": [
-        "http://localhost:3990"
+        "http://localhost:3990",
+        "+"
       ],
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
@@ -295,8 +297,8 @@
       "attributes": {
         "backchannel.logout.url": "http://nextjs:3000/api/auth/backchannel-logout",
         "backchannel.logout.session.required": "true",
-        "backchannel.logout.revoke.offline.tokens": "false",
-        "post.logout.redirect.uris": "http://localhost:3990",
+        "backchannel.logout.revoke.offline.tokens": "true",
+        "post.logout.redirect.uris": "+",
         "pkce.code.challenge.method": "S256"
       }
     },
