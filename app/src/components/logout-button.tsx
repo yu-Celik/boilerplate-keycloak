@@ -16,14 +16,20 @@ import {
 
 export function LogoutButton({ kcLogoutUrl }: { kcLogoutUrl: string }) {
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   async function handleLogout() {
-    // Step 1: Delete NextAuth cookies and wait for the browser to process
-    // the Set-Cookie headers before navigating away.
-    const res = await fetch("/api/auth/logout", { method: "POST" });
-    await res.json(); // ensure response (and Set-Cookie headers) are fully consumed
-    // Step 2: Navigate to KC logout (NextAuth session already destroyed)
-    window.location.href = kcLogoutUrl;
+    setLoading(true);
+    try {
+      // Step 1: Destroy NextAuth session via signOut on server
+      const res = await fetch("/api/auth/logout", { method: "POST" });
+      await res.json();
+      // Step 2: Navigate to KC logout to destroy KC session
+      window.location.href = kcLogoutUrl;
+    } catch {
+      // Fallback: navigate directly
+      window.location.href = kcLogoutUrl;
+    }
   }
 
   return (
@@ -44,8 +50,8 @@ export function LogoutButton({ kcLogoutUrl }: { kcLogoutUrl: string }) {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Annuler</AlertDialogCancel>
-          <AlertDialogAction onClick={handleLogout}>
-            Se déconnecter
+          <AlertDialogAction onClick={handleLogout} disabled={loading}>
+            {loading ? "Déconnexion..." : "Se déconnecter"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

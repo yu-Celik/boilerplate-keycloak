@@ -1,35 +1,29 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { signOut, auth } from "@/lib/auth";
 
-const COOKIE_NAMES = [
-  "authjs.session-token",
-  "__Secure-authjs.session-token",
-  "authjs.callback-url",
-  "__Secure-authjs.callback-url",
-  "authjs.csrf-token",
-  "__Secure-authjs.csrf-token",
-  "active-org",
-];
-
-// POST: Just delete cookies (called from client before KC redirect)
+// POST: Destroy NextAuth session (called from LogoutButton before KC redirect)
 export async function POST() {
-  const cookieStore = await cookies();
-  for (const name of COOKIE_NAMES) {
-    cookieStore.delete(name);
+  try {
+    await signOut({ redirect: false });
+  } catch {
+    // signOut may throw NEXT_REDIRECT — ignore
   }
   return NextResponse.json({ ok: true });
 }
 
-// GET: Fallback — delete cookies and redirect to KC logout
+// GET: Get KC logout URL with id_token_hint (called from LogoutButton)
 export async function GET() {
+  const session = await auth();
+  const idToken = (session as unknown as Record<string, unknown> | null)?.idToken as string | undefined;
+
   const kcIssuer = process.env.KC_ISSUER!;
   const postLogoutUri = encodeURIComponent(process.env.NEXTAUTH_URL + "/login");
   const clientId = process.env.KC_CLIENT_ID!;
-  const kcLogoutUrl = `${kcIssuer}/protocol/openid-connect/logout?post_logout_redirect_uri=${postLogoutUri}&client_id=${clientId}`;
 
-  const response = NextResponse.redirect(kcLogoutUrl);
-  for (const name of COOKIE_NAMES) {
-    response.cookies.delete(name);
+  let kcLogoutUrl = `${kcIssuer}/protocol/openid-connect/logout?post_logout_redirect_uri=${postLogoutUri}&client_id=${clientId}`;
+  if (idToken) {
+    kcLogoutUrl += `&id_token_hint=${idToken}`;
   }
-  return response;
+
+  return NextResponse.json({ kcLogoutUrl });
 }
