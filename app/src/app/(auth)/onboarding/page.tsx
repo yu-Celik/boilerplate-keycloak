@@ -14,12 +14,6 @@ export default async function OnboardingPage() {
   // Not authenticated at all — go to login
   if (!session?.user) redirect("/login");
 
-  // If user already has an org, go to dashboard
-  const org = session.organization;
-  if (org && typeof org === "object" && Object.keys(org).length > 0) {
-    redirect("/");
-  }
-
   const state = await getOnboardingState();
   if (!state) {
     console.log("[onboarding] getOnboardingState returned null, user:", session.user);

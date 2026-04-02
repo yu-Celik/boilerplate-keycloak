@@ -60,14 +60,6 @@ export async function createOrganizationAndRefresh(formData: FormData): Promise<
   }
   const userId = kcUser.id;
 
-  // SECURITY: Idempotency check — prevent duplicate org creation on double-submit
-  const existingUserOrgs = await getUserOrganizations(userId).catch(() => []);
-  if (existingUserOrgs.length > 0) {
-    // User already has an org — just re-sign-in to refresh token
-    await signIn("keycloak", { redirectTo: "/" });
-    return;
-  }
-
   const alias = orgName
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")

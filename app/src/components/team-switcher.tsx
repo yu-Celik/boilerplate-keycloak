@@ -21,19 +21,6 @@ export function TeamSwitcher({ organizations, activeOrg }: TeamSwitcherProps) {
     ([alias, data]) => ({ alias, ...data })
   );
 
-  // Single-org user: just show the org name, no dropdown
-  if (orgEntries.length <= 1 && currentOrg !== "__all__") {
-    const org = orgEntries[0];
-    return (
-      <div className="flex items-center gap-2 px-1">
-        <Building2 className="h-4 w-4 text-sidebar-foreground/70" />
-        <span className="text-sm font-semibold text-sidebar-foreground">
-          {org?.alias ?? "Boilerplate"}
-        </span>
-      </div>
-    );
-  }
-
   function handleSwitch(alias: string) {
     setOpen(false);
     setCurrentOrg(alias); // Instant UI update
