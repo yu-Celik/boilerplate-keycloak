@@ -14,21 +14,25 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-export function LogoutButton({ kcLogoutUrl }: { kcLogoutUrl: string }) {
+export function LogoutButton() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleLogout() {
     setLoading(true);
     try {
-      // Step 1: Destroy NextAuth session via signOut on server
+      // POST destroys NextAuth session AND returns KC logout URL
+      // id_token_hint is built server-side, never exposed to client
       const res = await fetch("/api/auth/logout", { method: "POST" });
-      await res.json();
-      // Step 2: Navigate to KC logout to destroy KC session
-      window.location.href = kcLogoutUrl;
+      const data = await res.json();
+      if (data.kcLogoutUrl) {
+        window.location.href = data.kcLogoutUrl;
+      } else {
+        // Fallback: just go to login
+        window.location.href = "/login";
+      }
     } catch {
-      // Fallback: navigate directly
-      window.location.href = kcLogoutUrl;
+      window.location.href = "/login";
     }
   }
 

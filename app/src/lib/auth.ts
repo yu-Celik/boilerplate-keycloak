@@ -7,6 +7,12 @@ import type { JWT } from "next-auth/jwt";
 // or backchannel logout will silently fail.
 export const sessionStore = new Map<string, string>();
 
+if (process.env.NODE_ENV === "production") {
+  console.warn(
+    "[auth] ⚠️ Using in-memory sessionStore. Backchannel logout will NOT work across multiple instances. Replace with Redis/KV."
+  );
+}
+
 // KC_ISSUER = public URL (browser + iss validation): http://localhost:3991/realms/boilerplate
 // KC_ISSUER_INTERNAL = Docker-internal URL (server fetches): http://keycloak:8080/realms/boilerplate
 const KC_PUBLIC = process.env.KC_ISSUER!;
@@ -99,7 +105,8 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
     },
     async session({ session, token }) {
       session.error = token.error;
-      // Store idToken for KC logout (id_token_hint to skip confirmation)
+      // idToken for KC logout (id_token_hint skips confirmation page)
+      // Only accessible server-side via auth() — NOT serialized to client useSession()
       (session as unknown as Record<string, unknown>).idToken = token.idToken;
 
       if (token.accessToken) {

@@ -71,16 +71,7 @@ export default async function DashboardLayout({
           <div className="mb-2 px-3 text-xs text-muted-foreground">
             {session.user.email}
           </div>
-          <LogoutButton kcLogoutUrl={(() => {
-            const idToken = (session as unknown as Record<string, unknown>).idToken as string | undefined;
-            const base = `${process.env.KC_ISSUER}/protocol/openid-connect/logout`;
-            const params = new URLSearchParams({
-              post_logout_redirect_uri: process.env.NEXTAUTH_URL + "/login",
-              client_id: process.env.KC_CLIENT_ID!,
-            });
-            if (idToken) params.set("id_token_hint", idToken);
-            return `${base}?${params.toString()}`;
-          })()} />
+          <LogoutButton />
         </div>
       </aside>
 
