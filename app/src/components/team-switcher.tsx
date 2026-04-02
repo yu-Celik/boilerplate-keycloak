@@ -2,8 +2,20 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, Plus, Building2, LayoutGrid, Loader2 } from "lucide-react";
-import Link from "next/link";
+import { ChevronsUpDown, Plus, Building2, LayoutGrid, Loader2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
 import { switchOrg } from "@/app/(dashboard)/actions";
 
 interface TeamSwitcherProps {
@@ -12,7 +24,6 @@ interface TeamSwitcherProps {
 }
 
 export function TeamSwitcher({ organizations, activeOrg }: TeamSwitcherProps) {
-  const [open, setOpen] = useState(false);
   const [currentOrg, setCurrentOrg] = useState(activeOrg);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -22,11 +33,10 @@ export function TeamSwitcher({ organizations, activeOrg }: TeamSwitcherProps) {
   );
 
   function handleSwitch(alias: string) {
-    setOpen(false);
-    setCurrentOrg(alias); // Instant UI update
+    setCurrentOrg(alias);
     startTransition(async () => {
-      await switchOrg(alias); // Secure httpOnly cookie via server action
-      router.refresh(); // Server re-render in background
+      await switchOrg(alias);
+      router.refresh();
     });
   }
 
@@ -35,74 +45,79 @@ export function TeamSwitcher({ organizations, activeOrg }: TeamSwitcherProps) {
       ? "Tous"
       : currentOrg ?? orgEntries[0]?.alias ?? "Boilerplate";
 
+  const CurrentIcon = currentOrg === "__all__" ? LayoutGrid : Building2;
+
   return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm font-semibold text-sidebar-foreground hover:bg-sidebar-accent"
-      >
-        <span className="flex items-center gap-2">
-          {currentOrg === "__all__" ? (
-            <LayoutGrid className="h-4 w-4" />
-          ) : (
-            <Building2 className="h-4 w-4" />
-          )}
-          {currentLabel}
-          {isPending && <Loader2 className="h-3 w-3 animate-spin opacity-50" />}
-        </span>
-        <ChevronDown className="h-3.5 w-3.5 opacity-50" />
-      </button>
-
-      {open && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-full min-w-[200px] rounded-md border border-sidebar-border bg-sidebar shadow-lg">
-          <button
-            onClick={() => handleSwitch("__all__")}
-            className={`flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-sidebar-accent ${
-              currentOrg === "__all__"
-                ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                : "text-sidebar-foreground"
-            }`}
-          >
-            <LayoutGrid className="h-4 w-4" />
-            Tous
-          </button>
-
-          <div className="my-1 border-t border-sidebar-border" />
-
-          {orgEntries.map((org) => (
-            <button
-              key={org.alias}
-              onClick={() => handleSwitch(org.alias)}
-              className={`flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-sidebar-accent ${
-                currentOrg === org.alias
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground"
-              }`}
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton
+              size="lg"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Building2 className="h-4 w-4" />
-              {org.alias}
-            </button>
-          ))}
-
-          <div className="my-1 border-t border-sidebar-border" />
-
-          <Link
-            href="/onboarding"
-            onClick={() => setOpen(false)}
-            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent"
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                <CurrentIcon className="size-4" />
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold">{currentLabel}</span>
+                <span className="truncate text-xs text-muted-foreground">
+                  {orgEntries.length} organisation{orgEntries.length > 1 ? "s" : ""}
+                </span>
+              </div>
+              {isPending ? (
+                <Loader2 className="ml-auto size-4 animate-spin" />
+              ) : (
+                <ChevronsUpDown className="ml-auto size-4" />
+              )}
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            align="start"
+            side="bottom"
+            sideOffset={4}
           >
-            <Plus className="h-4 w-4" />
-            Créer une organisation
-          </Link>
-        </div>
-      )}
-
-      {open && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setOpen(false)}
-        />
-      )}
-    </div>
+            <DropdownMenuLabel className="text-xs text-muted-foreground">
+              Organisations
+            </DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() => handleSwitch("__all__")}
+              className="gap-2 p-2"
+            >
+              <div className="flex size-6 items-center justify-center rounded-sm border">
+                <LayoutGrid className="size-4 shrink-0" />
+              </div>
+              Tous
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            {orgEntries.map((org) => (
+              <DropdownMenuItem
+                key={org.alias}
+                onClick={() => handleSwitch(org.alias)}
+                className="gap-2 p-2"
+              >
+                <div className="flex size-6 items-center justify-center rounded-sm border">
+                  <Building2 className="size-4 shrink-0" />
+                </div>
+                {org.alias}
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="gap-2 p-2"
+              onClick={() => router.push("/onboarding")}
+            >
+              <div className="flex size-6 items-center justify-center rounded-sm border bg-background">
+                <Plus className="size-4" />
+              </div>
+              <div className="font-medium text-muted-foreground">
+                Créer une organisation
+              </div>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
+    </SidebarMenu>
   );
 }
