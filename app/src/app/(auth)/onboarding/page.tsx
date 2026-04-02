@@ -4,7 +4,7 @@ export const metadata: Metadata = { title: "Onboarding" };
 
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { getOnboardingState, createOrganizationAndRefresh } from "./actions";
+import { getOnboardingState, createOrganizationAndRefresh, acceptInvitationFromOnboarding } from "./actions";
 import { suggestOrgName } from "@/lib/email-domain";
 
 export default async function OnboardingPage() {
@@ -14,7 +14,6 @@ export default async function OnboardingPage() {
 
   const state = await getOnboardingState();
   if (!state) {
-    console.log("[onboarding] getOnboardingState returned null, user:", session.user);
     redirect("/login");
   }
 
@@ -36,9 +35,37 @@ export default async function OnboardingPage() {
           </p>
         </div>
 
+        {/* Pending invitations */}
+        {(state.pendingInvitations?.length ?? 0) > 0 && (
+          <div className="space-y-3">
+            {state.pendingInvitations?.map((inv) => (
+              <PendingInvitationNotice
+                key={inv.invitationId}
+                orgId={inv.orgId}
+                orgName={inv.orgName}
+                invitationId={inv.invitationId}
+              />
+            ))}
+          </div>
+        )}
+
         {state.existingOrg && !state.alreadyMember ? (
           <ExistingOrgNotice orgName={state.existingOrg.name} />
         ) : null}
+
+        {/* Separator when invitations exist */}
+        {(state.pendingInvitations?.length ?? 0) > 0 && (
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-gray-500 dark:bg-gray-950 dark:text-gray-400">
+                ou créez une organisation
+              </span>
+            </div>
+          </div>
+        )}
 
         <form action={createOrganizationAndRefresh} className="space-y-4">
           <div className="space-y-2">
@@ -71,6 +98,36 @@ export default async function OnboardingPage() {
             className="inline-flex h-10 w-full items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white ring-offset-white transition-colors hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-200 dark:focus-visible:ring-gray-300"
           >
             Créer mon espace
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function PendingInvitationNotice({
+  orgId,
+  orgName,
+  invitationId,
+}: {
+  orgId: string;
+  orgName: string;
+  invitationId: string;
+}) {
+  return (
+    <div className="rounded-md border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950">
+      <p className="text-sm text-green-800 dark:text-green-200">
+        Vous êtes invité à rejoindre <strong>{orgName}</strong>
+      </p>
+      <div className="mt-3">
+        <form action={acceptInvitationFromOnboarding}>
+          <input type="hidden" name="orgId" value={orgId} />
+          <input type="hidden" name="invitationId" value={invitationId} />
+          <button
+            type="submit"
+            className="inline-flex h-8 items-center rounded-md bg-green-600 px-3 text-xs font-medium text-white hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
+          >
+            Accepter l&apos;invitation
           </button>
         </form>
       </div>

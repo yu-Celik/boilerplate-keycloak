@@ -10,8 +10,12 @@ import {
   getUserByEmail,
   createOrgGroup,
   addMemberToGroup,
+  listOrganizations,
+  listOrgInvitations,
+  deleteOrgInvitation,
 } from "@/lib/keycloak-admin";
 import { extractDomain, isPublicDomain } from "@/lib/email-domain";
+import type { OrgInvitation } from "@/types";
 
 const DEFAULT_GROUPS = ["Admin", "Managers", "Members"] as const;
 
@@ -39,12 +43,30 @@ export async function getOnboardingState() {
     }
   }
 
+  // Check for pending invitations across all orgs
+  let pendingInvitations: Array<{ orgId: string; orgName: string; invitationId: string }> = [];
+  try {
+    const allOrgs = await listOrganizations();
+    for (const org of allOrgs) {
+      const invitations: OrgInvitation[] = await listOrgInvitations(org.id).catch(() => []);
+      const matching = invitations.filter(
+        (inv) => inv.email === email && inv.status === "PENDING"
+      );
+      for (const inv of matching) {
+        pendingInvitations.push({ orgId: org.id, orgName: org.name, invitationId: inv.id });
+      }
+    }
+  } catch {
+    // non-critical
+  }
+
   return {
     email,
     domain,
     isPublic,
     existingOrg,
     alreadyMember,
+    pendingInvitations,
   };
 }
 
@@ -112,5 +134,23 @@ export async function createOrganizationAndRefresh(formData: FormData): Promise<
 
   // Force re-sign-in to get a fresh token with organization:* scope
   // KC session cookie is still valid, so this is transparent to the user
+  await signIn("keycloak", { redirectTo: "/" });
+}
+
+export async function acceptInvitationFromOnboarding(formData: FormData): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.email) throw new Error("Not authenticated");
+
+  const orgId = formData.get("orgId") as string;
+  const invitationId = formData.get("invitationId") as string;
+  if (!orgId || !invitationId) throw new Error("Missing parameters");
+
+  const kcUser = await getUserByEmail(session.user.email);
+  if (!kcUser?.id) throw new Error("User not found in Keycloak");
+
+  await addOrgMember(orgId, kcUser.id);
+  await deleteOrgInvitation(orgId, invitationId).catch(() => {});
+
+  // Re-auth to get fresh token with new org
   await signIn("keycloak", { redirectTo: "/" });
 }
