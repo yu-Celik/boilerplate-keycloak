@@ -1,4 +1,4 @@
-import { auth, signOut } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { LoginRedirect } from "./login-redirect";
 
@@ -10,15 +10,13 @@ export default async function LoginPage({
   const params = await searchParams;
   const session = await auth();
 
-  // If there's an auth error or broken session, sign out first
+  // If there's an auth error or broken session, clear it via logout API
   if (session?.error || params.error) {
-    await signOut({ redirect: false });
+    redirect("/api/auth/logout");
   }
 
   // Already authenticated with valid session
-  console.log("[login] session:", JSON.stringify({ user: session?.user, error: session?.error, org: session?.organization }));
-
-  if (session?.user && !session.error) {
+  if (session?.user) {
     const org = session.organization;
     const hasOrg =
       org !== undefined &&
