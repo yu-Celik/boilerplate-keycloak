@@ -26,8 +26,17 @@ export async function getOnboardingState() {
   const isPublic = isPublicDomain(domain);
 
   let existingOrg = null;
+  let alreadyMember = false;
   if (!isPublic) {
     existingOrg = await searchOrgByDomain(domain).catch(() => null);
+    // Check if user is already a member of this org
+    if (existingOrg) {
+      const kcUser = await getUserByEmail(email).catch(() => null);
+      if (kcUser?.id) {
+        const userOrgs = await getUserOrganizations(kcUser.id).catch(() => []);
+        alreadyMember = userOrgs.some((o: { id: string }) => o.id === existingOrg!.id);
+      }
+    }
   }
 
   return {
@@ -35,6 +44,7 @@ export async function getOnboardingState() {
     domain,
     isPublic,
     existingOrg,
+    alreadyMember,
   };
 }
 
@@ -65,10 +75,15 @@ export async function createOrganizationAndRefresh(formData: FormData): Promise<
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 
-  // Create org — with domain for professional emails, domainless for public
-  const domains = isPublic
-    ? undefined
-    : [{ name: domain, verified: false }];
+  // Create org — with domain only for the first org on this domain
+  // If domain is already claimed by another org, create without domain
+  let domains: { name: string; verified: boolean }[] | undefined;
+  if (!isPublic) {
+    const existingOrg = await searchOrgByDomain(domain).catch(() => null);
+    if (!existingOrg) {
+      domains = [{ name: domain, verified: false }];
+    }
+  }
   const org = await createOrganization(orgName, alias, domains);
 
   // Add user as member

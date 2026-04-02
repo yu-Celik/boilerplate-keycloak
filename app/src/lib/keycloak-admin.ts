@@ -96,7 +96,7 @@ export async function searchOrgByDomain(domain: string) {
 }
 
 export async function getUserOrganizations(userId: string) {
-  const res = await adminFetch(`/users/${userId}/organizations`);
+  const res = await adminFetch(`/organizations?memberUserId=${userId}`);
   if (!res.ok) throw new Error(`Failed to get user organizations: ${res.status}`);
   return res.json();
 }

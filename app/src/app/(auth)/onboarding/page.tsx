@@ -9,8 +9,6 @@ import { suggestOrgName } from "@/lib/email-domain";
 
 export default async function OnboardingPage() {
   const session = await auth();
-  console.log("[onboarding] session:", JSON.stringify({ user: session?.user, org: session?.organization, error: session?.error }));
-
   // Not authenticated at all — go to login
   if (!session?.user) redirect("/login");
 
@@ -20,21 +18,25 @@ export default async function OnboardingPage() {
     redirect("/login");
   }
 
-  const suggestedName = suggestOrgName(state.email) ?? "";
+  const suggestedName = state.alreadyMember ? "" : (suggestOrgName(state.email) ?? "");
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
       <div className="w-full max-w-md space-y-6 rounded-lg border bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-gray-950">
         <div className="space-y-2 text-center">
           <h1 className="text-2xl font-bold">
-            Bienvenue {session.user.name ?? ""} !
+            {state.alreadyMember
+              ? "Nouvelle organisation"
+              : `Bienvenue ${session.user.name ?? ""} !`}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Créez votre espace de travail pour commencer.
+            {state.alreadyMember
+              ? "Créez une nouvelle organisation."
+              : "Créez votre espace de travail pour commencer."}
           </p>
         </div>
 
-        {state.existingOrg ? (
+        {state.existingOrg && !state.alreadyMember ? (
           <ExistingOrgNotice orgName={state.existingOrg.name} />
         ) : null}
 
