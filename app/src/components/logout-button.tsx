@@ -18,9 +18,11 @@ export function LogoutButton({ kcLogoutUrl }: { kcLogoutUrl: string }) {
   const [open, setOpen] = useState(false);
 
   async function handleLogout() {
-    // Step 1: Delete NextAuth cookies via server action
-    await fetch("/api/auth/logout", { method: "POST" });
-    // Step 2: Navigate to KC logout (session already destroyed)
+    // Step 1: Delete NextAuth cookies and wait for the browser to process
+    // the Set-Cookie headers before navigating away.
+    const res = await fetch("/api/auth/logout", { method: "POST" });
+    await res.json(); // ensure response (and Set-Cookie headers) are fully consumed
+    // Step 2: Navigate to KC logout (NextAuth session already destroyed)
     window.location.href = kcLogoutUrl;
   }
 
