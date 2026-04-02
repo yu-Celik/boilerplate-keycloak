@@ -77,6 +77,21 @@
         }
       ],
       "realmRoles": ["default-roles-boilerplate"]
+    },
+    {
+      "username": "service-account-boilerplate-service",
+      "enabled": true,
+      "serviceAccountClientId": "boilerplate-service",
+      "clientRoles": {
+        "realm-management": [
+          "manage-users",
+          "view-users",
+          "manage-realm",
+          "view-realm",
+          "manage-clients",
+          "view-clients"
+        ]
+      }
     }
   ],
   "clientScopes": [
