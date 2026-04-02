@@ -8,11 +8,11 @@ import {
   Mail,
   Shield,
   Settings,
-  LogOut,
   Contact,
   SquareCheck,
 } from "lucide-react";
 import { TeamSwitcher } from "@/components/team-switcher";
+import { LogoutButton } from "@/components/logout-button";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -71,13 +71,7 @@ export default async function DashboardLayout({
           <div className="mb-2 px-3 text-xs text-muted-foreground">
             {session.user.email}
           </div>
-          <a
-            href="/api/auth/logout"
-            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-destructive hover:bg-sidebar-accent"
-          >
-            <LogOut className="h-4 w-4" />
-            Déconnexion
-          </a>
+          <LogoutButton />
         </div>
       </aside>
 
