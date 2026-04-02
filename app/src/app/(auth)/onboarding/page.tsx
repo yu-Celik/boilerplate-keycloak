@@ -9,7 +9,10 @@ import { suggestOrgName } from "@/lib/email-domain";
 
 export default async function OnboardingPage() {
   const session = await auth();
-  if (!session?.user?.email) redirect("/login");
+  console.log("[onboarding] session:", JSON.stringify({ user: session?.user, org: session?.organization, error: session?.error }));
+
+  // Not authenticated at all — go to login
+  if (!session?.user) redirect("/login");
 
   // If user already has an org, go to dashboard
   const org = session.organization;
@@ -18,7 +21,10 @@ export default async function OnboardingPage() {
   }
 
   const state = await getOnboardingState();
-  if (!state) redirect("/login");
+  if (!state) {
+    console.log("[onboarding] getOnboardingState returned null, user:", session.user);
+    redirect("/login");
+  }
 
   const suggestedName = suggestOrgName(state.email) ?? "";
 

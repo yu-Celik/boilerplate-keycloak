@@ -1,5 +1,4 @@
 // Next.js 16+ uses proxy.ts (renamed from middleware.ts)
-// For Next.js < 16, rename this file to middleware.ts
 
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
@@ -20,22 +19,23 @@ function isPublicPath(pathname: string): boolean {
 export default auth((req) => {
   const { pathname } = req.nextUrl;
 
-  // Skip org check for public paths
+  // Skip checks for public paths
   if (isPublicPath(pathname)) {
     return NextResponse.next();
   }
 
   const session = req.auth;
 
-  // Not authenticated — NextAuth handles redirect to /login
+  // Not authenticated — redirect to login
   if (!session) {
-    return NextResponse.next();
-  }
-
-  // Session expired or refresh failed — force re-login
-  if (session.error === "RefreshTokenError") {
     const loginUrl = new URL("/login", req.nextUrl.origin);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Session expired or refresh failed — clear session and re-login
+  if (session.error === "RefreshTokenError") {
+    const logoutUrl = new URL("/api/auth/signout", req.nextUrl.origin);
+    return NextResponse.redirect(logoutUrl);
   }
 
   // Check organization claim

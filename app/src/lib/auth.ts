@@ -98,8 +98,6 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       return refreshAccessToken(token);
     },
     async session({ session, token }) {
-      // SECURITY: Do NOT expose accessToken to the client.
-      // Only expose error state and parsed org claims.
       session.error = token.error;
 
       if (token.accessToken) {
@@ -110,6 +108,14 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
               "base64"
             ).toString()
           );
+
+          // Populate user info from KC access token claims
+          if (session.user) {
+            session.user.id = payload.sub ?? token.sub ?? "";
+            session.user.email = payload.email ?? token.email as string ?? "";
+            session.user.name = payload.name ?? payload.preferred_username ?? token.name as string ?? "";
+          }
+
           const org = payload.organization ?? null;
           session.organization = org;
 

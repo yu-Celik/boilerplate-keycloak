@@ -16,9 +16,11 @@ const DEFAULT_GROUPS = ["Admin", "Managers", "Members"] as const;
 
 export async function getOnboardingState() {
   const session = await auth();
-  if (!session?.user?.email) return null;
+  if (!session?.user) return null;
+  // Email may be missing if KC profile doesn't include it — use empty string as fallback
+  const email = session.user.email ?? "";
+  if (!email) return { email: "", domain: "", isPublic: true, existingOrg: null };
 
-  const email = session.user.email;
   const domain = extractDomain(email);
   const isPublic = isPublicDomain(domain);
 
