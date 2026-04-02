@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   serverExternalPackages: [],
+  allowedDevOrigins: ["finanssor-data-center-v1.tail446cc0.ts.net"],
   async headers() {
     return [
       {
