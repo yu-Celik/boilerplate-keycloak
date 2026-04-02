@@ -182,6 +182,13 @@ export async function deleteOrgInvitation(orgId: string, invitationId: string) {
   if (!res.ok) throw new Error(`Failed to delete invitation: ${res.status}`);
 }
 
+export async function getUserByEmail(email: string) {
+  const res = await adminFetch(`/users?email=${encodeURIComponent(email)}&exact=true`);
+  if (!res.ok) throw new Error(`Failed to search user by email: ${res.status}`);
+  const users = await res.json();
+  return users[0] ?? null;
+}
+
 // ── Roles ────────────────────────────────────────
 
 export async function listRealmRoles() {

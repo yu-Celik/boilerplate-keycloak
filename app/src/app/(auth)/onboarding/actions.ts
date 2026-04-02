@@ -7,6 +7,7 @@ import {
   deleteOrganization,
   searchOrgByDomain,
   getUserOrganizations,
+  getUserByEmail,
   createOrgGroup,
   addMemberToGroup,
 } from "@/lib/keycloak-admin";
@@ -52,11 +53,12 @@ export async function createOrganizationAndRefresh(formData: FormData): Promise<
   const email = session.user.email;
   const domain = extractDomain(email);
   const isPublic = isPublicDomain(domain);
-  const userId = session.user.id;
-
-  if (!userId) {
-    throw new Error("User ID not found in session");
+  // Resolve KC user ID from email (session.user.id is NextAuth ID, not KC ID)
+  const kcUser = await getUserByEmail(email);
+  if (!kcUser?.id) {
+    throw new Error("User not found in Keycloak");
   }
+  const userId = kcUser.id;
 
   // SECURITY: Idempotency check — prevent duplicate org creation on double-submit
   const existingUserOrgs = await getUserOrganizations(userId).catch(() => []);

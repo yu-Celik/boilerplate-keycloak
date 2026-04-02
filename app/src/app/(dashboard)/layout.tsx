@@ -71,13 +71,21 @@ export default async function DashboardLayout({
           <div className="mb-2 px-3 text-xs text-muted-foreground">
             {session.user.email}
           </div>
-          <Link
-            href="/logout"
-            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-destructive hover:bg-sidebar-accent"
+          <form
+            action={async () => {
+              "use server";
+              const { signOut } = await import("@/lib/auth");
+              await signOut({ redirectTo: "/login" });
+            }}
           >
-            <LogOut className="h-4 w-4" />
-            Déconnexion
-          </Link>
+            <button
+              type="submit"
+              className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-destructive hover:bg-sidebar-accent"
+            >
+              <LogOut className="h-4 w-4" />
+              Déconnexion
+            </button>
+          </form>
         </div>
       </aside>
 
