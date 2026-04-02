@@ -1,47 +1,35 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { cookies } from "next/headers";
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
+const COOKIE_NAMES = [
+  "authjs.session-token",
+  "__Secure-authjs.session-token",
+  "authjs.callback-url",
+  "__Secure-authjs.callback-url",
+  "authjs.csrf-token",
+  "__Secure-authjs.csrf-token",
+  "active-org",
+];
 
-  // Step 2: If we already have the KC logout URL, just redirect
-  const kcUrl = searchParams.get("kc");
-  if (kcUrl) {
-    return NextResponse.redirect(kcUrl);
+// POST: Just delete cookies (called from client before KC redirect)
+export async function POST() {
+  const cookieStore = await cookies();
+  for (const name of COOKIE_NAMES) {
+    cookieStore.delete(name);
   }
+  return NextResponse.json({ ok: true });
+}
 
-  // Step 1: Get idToken, delete cookies, redirect back to ourselves with KC URL
-  const session = await auth();
-  const idToken = (session as unknown as Record<string, unknown> | null)?.idToken as string | undefined;
-
+// GET: Fallback — delete cookies and redirect to KC logout
+export async function GET() {
   const kcIssuer = process.env.KC_ISSUER!;
   const postLogoutUri = encodeURIComponent(process.env.NEXTAUTH_URL + "/login");
   const clientId = process.env.KC_CLIENT_ID!;
+  const kcLogoutUrl = `${kcIssuer}/protocol/openid-connect/logout?post_logout_redirect_uri=${postLogoutUri}&client_id=${clientId}`;
 
-  let kcLogoutUrl = `${kcIssuer}/protocol/openid-connect/logout?post_logout_redirect_uri=${postLogoutUri}&client_id=${clientId}`;
-  if (idToken) {
-    kcLogoutUrl += `&id_token_hint=${idToken}`;
-  }
-
-  // Redirect to self with KC URL param — cookies are deleted on THIS response (same origin)
-  const selfUrl = new URL("/api/auth/logout", process.env.NEXTAUTH_URL!);
-  selfUrl.searchParams.set("kc", kcLogoutUrl);
-
-  const response = NextResponse.redirect(selfUrl);
-
-  // Delete cookies on same-origin redirect (this works)
-  const cookieNames = [
-    "authjs.session-token",
-    "__Secure-authjs.session-token",
-    "authjs.callback-url",
-    "__Secure-authjs.callback-url",
-    "authjs.csrf-token",
-    "__Secure-authjs.csrf-token",
-    "active-org",
-  ];
-  for (const name of cookieNames) {
+  const response = NextResponse.redirect(kcLogoutUrl);
+  for (const name of COOKIE_NAMES) {
     response.cookies.delete(name);
   }
-
   return response;
 }

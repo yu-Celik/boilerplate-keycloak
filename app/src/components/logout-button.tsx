@@ -14,8 +14,15 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-export function LogoutButton() {
+export function LogoutButton({ kcLogoutUrl }: { kcLogoutUrl: string }) {
   const [open, setOpen] = useState(false);
+
+  async function handleLogout() {
+    // Step 1: Delete NextAuth cookies via server action
+    await fetch("/api/auth/logout", { method: "POST" });
+    // Step 2: Navigate to KC logout (session already destroyed)
+    window.location.href = kcLogoutUrl;
+  }
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
@@ -35,11 +42,7 @@ export function LogoutButton() {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Annuler</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={() => {
-              window.location.href = "/api/auth/logout";
-            }}
-          >
+          <AlertDialogAction onClick={handleLogout}>
             Se déconnecter
           </AlertDialogAction>
         </AlertDialogFooter>
