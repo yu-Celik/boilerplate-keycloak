@@ -5,7 +5,7 @@ import { acceptInvitation } from "@/app/(dashboard)/accept-invitation-action";
 export function PendingInvitationsBanner({
   invitations,
 }: {
-  invitations: Array<{ orgId: string; orgName: string; invitationId: string }>;
+  invitations: Array<{ orgId: string; orgName: string; invitationId: string; role: string }>;
 }) {
   if (invitations.length === 0) return null;
 
@@ -21,6 +21,7 @@ export function PendingInvitationsBanner({
           <input type="hidden" name="invitationId" value={inv.invitationId} />
           <p className="text-sm text-green-800 dark:text-green-200">
             Vous êtes invité à rejoindre <strong>{inv.orgName}</strong>
+            {" "}en tant que <strong>{inv.role}</strong>
           </p>
           <button
             type="submit"

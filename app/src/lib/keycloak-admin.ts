@@ -1,4 +1,5 @@
 import type { Organization, OrgMember, OrgInvitation, OrgGroup } from "@/types";
+import { getInvitationRole } from "@/lib/invitation-role-store";
 
 const KC_INTERNAL = process.env.KC_ISSUER_INTERNAL || "http://keycloak:8080/realms/boilerplate";
 const KC_BASE = KC_INTERNAL.replace("/realms/boilerplate", "");
@@ -62,6 +63,29 @@ export async function getOrganization(orgId: string): Promise<Organization> {
   return res.json() as Promise<Organization>;
 }
 
+export async function updateOrganization(
+  orgId: string,
+  data: Partial<Pick<Organization, "name" | "alias" | "attributes" | "domains">>
+) {
+  const org = await getOrganization(orgId);
+  const res = await adminFetch(`/organizations/${orgId}`, {
+    method: "PUT",
+    body: JSON.stringify({ ...org, ...data }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Failed to update organization: ${res.status} ${body}`);
+  }
+}
+
+export function isAutoJoinEnabled(org: Organization): boolean {
+  return org.attributes?.autoJoin?.[0] === "true";
+}
+
+export function hasVerifiedDomain(org: Organization): boolean {
+  return org.domains?.some((d) => d.verified) ?? false;
+}
+
 export async function getOrgByAlias(alias: string): Promise<Organization | null> {
   const res = await adminFetch(`/organizations?search=${encodeURIComponent(alias)}`);
   if (!res.ok) throw new Error(`Failed to search organizations: ${res.status}`);
@@ -107,7 +131,19 @@ export async function searchOrgByDomain(domain: string): Promise<Organization | 
 export async function getUserOrganizations(userId: string): Promise<Organization[]> {
   const res = await adminFetch(`/organizations?memberUserId=${userId}`);
   if (!res.ok) throw new Error(`Failed to get user organizations: ${res.status}`);
-  return res.json() as Promise<Organization[]>;
+  const candidates = (await res.json()) as Organization[];
+
+  // Workaround: KC nightly memberUserId filter returns false positives.
+  // Verify each membership by checking the actual members list.
+  const verified = await Promise.all(
+    candidates.map(async (org) => {
+      const membersRes = await adminFetch(`/organizations/${org.id}/members`);
+      if (!membersRes.ok) return null;
+      const members = (await membersRes.json()) as OrgMember[];
+      return members.some((m) => m.id === userId) ? org : null;
+    })
+  );
+  return verified.filter((org): org is Organization => org !== null);
 }
 
 // ── Organization Groups ─────────────────────────
@@ -238,8 +274,8 @@ export async function assertOrgRole(
 export async function getPendingInvitationsForUser(
   email: string,
   userOrgAliases: string[]
-): Promise<Array<{ orgId: string; orgName: string; invitationId: string }>> {
-  const result: Array<{ orgId: string; orgName: string; invitationId: string }> = [];
+): Promise<Array<{ orgId: string; orgName: string; invitationId: string; role: string }>> {
+  const result: Array<{ orgId: string; orgName: string; invitationId: string; role: string }> = [];
 
   // Domain-scoped search (not full realm scan)
   const domain = email.split("@")[1];
@@ -265,7 +301,8 @@ export async function getPendingInvitationsForUser(
     const { org, invitations } = r.value;
     for (const inv of invitations) {
       if (inv.email === email && inv.status === "PENDING") {
-        result.push({ orgId: org.id, orgName: org.name, invitationId: inv.id });
+        const role = await getInvitationRole(org.id, email).catch(() => null) ?? "Members";
+        result.push({ orgId: org.id, orgName: org.name, invitationId: inv.id, role });
       }
     }
   }

@@ -1,5 +1,6 @@
 import { getActiveOrgId, getAllOrgIds } from "@/lib/active-org";
 import { listOrgInvitations } from "@/lib/keycloak-admin";
+import { getInvitationRole } from "@/lib/invitation-role-store";
 import { inviteUser, revokeInvitation } from "./actions";
 import { RevokeForm } from "./revoke-form";
 import type { OrgInvitation } from "@/types";
@@ -7,10 +8,10 @@ import type { OrgInvitation } from "@/types";
 export default async function InvitationsPage() {
   const orgId = await getActiveOrgId();
 
-  let invitations: OrgInvitation[] = [];
+  let rawInvitations: OrgInvitation[] = [];
   if (orgId) {
     try {
-      invitations = await listOrgInvitations(orgId);
+      rawInvitations = await listOrgInvitations(orgId);
     } catch {
       // Admin API may not be available
     }
@@ -19,9 +20,17 @@ export default async function InvitationsPage() {
     const orgIds = await getAllOrgIds();
     const results = await Promise.allSettled(orgIds.map((id) => listOrgInvitations(id)));
     for (const r of results) {
-      if (r.status === "fulfilled") invitations.push(...r.value);
+      if (r.status === "fulfilled") rawInvitations.push(...r.value);
     }
   }
+
+  // Enrich invitations with stored role
+  const invitations = await Promise.all(
+    rawInvitations.map(async (inv) => {
+      const role = await getInvitationRole(inv.organizationId, inv.email).catch(() => null);
+      return { ...inv, role: role ?? "Members" };
+    })
+  );
 
   return (
     <div className="space-y-6">
@@ -42,6 +51,15 @@ export default async function InvitationsPage() {
             required
             className="flex-1 rounded-md border bg-background px-4 py-2 text-sm"
           />
+          <select
+            name="role"
+            defaultValue="Members"
+            className="rounded-md border bg-background px-3 py-2 text-sm"
+          >
+            <option value="Members">Membre</option>
+            <option value="Managers">Manager</option>
+            <option value="Admin">Admin</option>
+          </select>
           <button
             type="submit"
             className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
@@ -64,6 +82,9 @@ export default async function InvitationsPage() {
                 Email
               </th>
               <th className="px-4 py-3 text-left text-sm font-medium">
+                Rôle
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium">
                 Statut
               </th>
               <th className="px-4 py-3 text-left text-sm font-medium">
@@ -80,7 +101,7 @@ export default async function InvitationsPage() {
             {invitations.length === 0 ? (
               <tr>
                 <td
-                  colSpan={orgId ? 4 : 3}
+                  colSpan={orgId ? 5 : 4}
                   className="px-4 py-8 text-center text-muted-foreground"
                 >
                   Aucune invitation envoyée
@@ -90,6 +111,7 @@ export default async function InvitationsPage() {
               invitations.map((inv) => (
                 <tr key={inv.id} className="border-b">
                   <td className="px-4 py-3 text-sm">{inv.email}</td>
+                  <td className="px-4 py-3 text-sm">{inv.role}</td>
                   <td className="px-4 py-3">
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${

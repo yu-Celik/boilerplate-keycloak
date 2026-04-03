@@ -49,6 +49,7 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
 }
 
 export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
+  trustHost: true,
   providers: [
     {
       id: "keycloak",

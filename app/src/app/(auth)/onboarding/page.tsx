@@ -4,20 +4,25 @@ export const metadata: Metadata = { title: "Onboarding" };
 
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { getOnboardingState, createOrganizationAndRefresh, acceptInvitationFromOnboarding } from "./actions";
+import { getOnboardingState, createOrganizationAndRefresh, acceptInvitationFromOnboarding, joinOrganization } from "./actions";
 import { suggestOrgName } from "@/lib/email-domain";
 
-export default async function OnboardingPage() {
+export default async function OnboardingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   const session = await auth();
   // Not authenticated at all — go to login
   if (!session?.user) redirect("/login");
+  const { error } = await searchParams;
 
   const state = await getOnboardingState();
   if (!state) {
     redirect("/login");
   }
 
-  const suggestedName = state.alreadyMember ? "" : (suggestOrgName(state.email) ?? "");
+  const suggestedName = (state.alreadyMember || state.existingOrg) ? "" : (suggestOrgName(state.email) ?? "");
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -44,13 +49,18 @@ export default async function OnboardingPage() {
                 orgId={inv.orgId}
                 orgName={inv.orgName}
                 invitationId={inv.invitationId}
+                role={inv.role}
               />
             ))}
           </div>
         )}
 
         {state.existingOrg && !state.alreadyMember ? (
-          <ExistingOrgNotice orgName={state.existingOrg.name} />
+          <ExistingOrgNotice
+            orgId={state.existingOrg.id}
+            orgName={state.existingOrg.name}
+            autoJoinAvailable={state.autoJoinAvailable}
+          />
         ) : null}
 
         {/* Separator when invitations exist */}
@@ -65,6 +75,12 @@ export default async function OnboardingPage() {
               </span>
             </div>
           </div>
+        )}
+
+        {error === "org_exists" && (
+          <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+            Ce nom d&apos;organisation est déjà pris. Choisissez un autre nom.
+          </p>
         )}
 
         <form action={createOrganizationAndRefresh} className="space-y-4">
@@ -109,15 +125,18 @@ function PendingInvitationNotice({
   orgId,
   orgName,
   invitationId,
+  role,
 }: {
   orgId: string;
   orgName: string;
   invitationId: string;
+  role: string;
 }) {
   return (
     <div className="rounded-md border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950">
       <p className="text-sm text-green-800 dark:text-green-200">
         Vous êtes invité à rejoindre <strong>{orgName}</strong>
+        {" "}en tant que <strong>{role}</strong>
       </p>
       <div className="mt-3">
         <form action={acceptInvitationFromOnboarding}>
@@ -135,7 +154,15 @@ function PendingInvitationNotice({
   );
 }
 
-function ExistingOrgNotice({ orgName }: { orgName: string }) {
+function ExistingOrgNotice({
+  orgId,
+  orgName,
+  autoJoinAvailable,
+}: {
+  orgId: string;
+  orgName: string;
+  autoJoinAvailable: boolean;
+}) {
   return (
     <div className="rounded-md border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950">
       <p className="text-sm text-blue-800 dark:text-blue-200">
@@ -143,14 +170,21 @@ function ExistingOrgNotice({ orgName }: { orgName: string }) {
         votre domaine email.
       </p>
       <div className="mt-3 flex gap-2">
-        <button
-          type="button"
-          className="inline-flex h-8 items-center rounded-md border border-blue-300 bg-white px-3 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800"
-          disabled
-          title="Bientôt disponible"
-        >
-          Demander à rejoindre
-        </button>
+        {autoJoinAvailable ? (
+          <form action={joinOrganization}>
+            <input type="hidden" name="orgId" value={orgId} />
+            <button
+              type="submit"
+              className="inline-flex h-8 items-center rounded-md bg-blue-600 px-3 text-xs font-medium text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
+            >
+              Rejoindre
+            </button>
+          </form>
+        ) : (
+          <span className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+            Contactez un administrateur pour rejoindre cette organisation.
+          </span>
+        )}
         <span className="flex items-center text-xs text-gray-500">
           ou créez votre propre espace ci-dessous
         </span>

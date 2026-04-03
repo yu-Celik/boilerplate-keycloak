@@ -30,7 +30,7 @@ export default async function DashboardLayout({
 
   // Check for pending invitations (domain-scoped, not full realm scan)
   const userEmail = session.user.email ?? "";
-  let pendingInvitations: Array<{ orgId: string; orgName: string; invitationId: string }> = [];
+  let pendingInvitations: Array<{ orgId: string; orgName: string; invitationId: string; role: string }> = [];
   if (userEmail) {
     try {
       pendingInvitations = await getPendingInvitationsForUser(userEmail, orgAliases);

@@ -1,9 +1,13 @@
 import { getActiveOrgId } from "@/lib/active-org";
-import { getOrganization } from "@/lib/keycloak-admin";
+import { getOrganization, isAutoJoinEnabled, hasVerifiedDomain as checkVerifiedDomain } from "@/lib/keycloak-admin";
+import { auth } from "@/lib/auth";
+import { AutoJoinToggle } from "./auto-join-toggle";
+import { DomainManager } from "./domain-manager";
 import type { Organization } from "@/types";
 
 export default async function SettingsPage() {
   const orgId = await getActiveOrgId();
+  const session = await auth();
 
   let org: Organization | null = null;
   if (orgId) {
@@ -13,6 +17,8 @@ export default async function SettingsPage() {
       // Admin API may not be available
     }
   }
+
+  const isAdmin = session?.orgRole === "admin";
 
   return (
     <div className="space-y-6">
@@ -44,28 +50,26 @@ export default async function SettingsPage() {
                 <label className="text-sm font-medium text-muted-foreground">ID</label>
                 <p className="mt-1 font-mono text-xs text-muted-foreground">{org?.id || "N/A"}</p>
               </div>
-              {org?.domains && org.domains.length > 0 && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Domaines</label>
-                  <div className="mt-1 flex flex-wrap gap-2">
-                    {org.domains.map((d) => (
-                      <span key={d.name} className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-sm">
-                        {d.name}
-                        {d.verified && <span className="ml-1 text-green-500">&#10003;</span>}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
-          <div className="rounded-lg border border-destructive/50 bg-card p-6">
-            <h2 className="mb-2 text-lg font-semibold text-destructive">Zone de danger</h2>
-            <p className="mb-4 text-sm text-muted-foreground">Ces actions sont irréversibles.</p>
-            <button disabled className="rounded-md border border-destructive px-4 py-2 text-sm text-destructive opacity-50">
-              Quitter l&apos;organisation (bientôt disponible)
-            </button>
-          </div>
+
+          {org && (
+            <DomainManager
+              domain={org.domains?.[0]?.name ?? null}
+              verified={org.domains?.[0]?.verified ?? false}
+              verifyToken={org.attributes?.domainVerifyToken?.[0] ?? null}
+              isAdmin={isAdmin}
+            />
+          )}
+
+          {org && (
+            <AutoJoinToggle
+              enabled={isAutoJoinEnabled(org)}
+              canToggle={checkVerifiedDomain(org)}
+              hasVerifiedDomain={checkVerifiedDomain(org)}
+              isAdmin={isAdmin}
+            />
+          )}
         </>
       )}
     </div>
