@@ -1,6 +1,7 @@
 import { getActiveOrgId, getAllOrgIds } from "@/lib/active-org";
 import { listOrgInvitations } from "@/lib/keycloak-admin";
 import { inviteUser, revokeInvitation } from "./actions";
+import { RevokeForm } from "./revoke-form";
 import type { OrgInvitation } from "@/types";
 
 export default async function InvitationsPage() {
@@ -14,15 +15,11 @@ export default async function InvitationsPage() {
       // Admin API may not be available
     }
   } else {
-    // "Tous" mode — aggregate invitations from all orgs
+    // "Tous" mode — aggregate invitations from all orgs in parallel
     const orgIds = await getAllOrgIds();
-    for (const id of orgIds) {
-      try {
-        const orgInvitations = await listOrgInvitations(id);
-        invitations.push(...orgInvitations);
-      } catch {
-        // skip
-      }
+    const results = await Promise.allSettled(orgIds.map((id) => listOrgInvitations(id)));
+    for (const r of results) {
+      if (r.status === "fulfilled") invitations.push(...r.value);
     }
   }
 
@@ -109,19 +106,8 @@ export default async function InvitationsPage() {
                   </td>
                   {orgId && (
                     <td className="px-4 py-3 text-right">
-                      <form action={revokeInvitation} className="inline">
-                        <input
-                          type="hidden"
-                          name="invitationId"
-                          value={inv.id}
-                        />
-                        <button
-                          type="submit"
-                          className="text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                        >
-                          Révoquer
-                        </button>
-                      </form>
+
+                      <RevokeForm action={revokeInvitation} invitationId={inv.id} />
                     </td>
                   )}
                 </tr>

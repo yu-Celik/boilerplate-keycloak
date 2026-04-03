@@ -110,9 +110,11 @@ export function NavUser({
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem>
-                  <BadgeCheck />
-                  Mon compte
+                <DropdownMenuItem asChild>
+                  <a href="/settings">
+                    <BadgeCheck />
+                    Mon compte
+                  </a>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />

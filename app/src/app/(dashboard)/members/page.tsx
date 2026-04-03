@@ -13,20 +13,17 @@ export default async function MembersPage() {
       // Admin API may not be available
     }
   } else {
-    // "Tous" mode — aggregate members from all orgs, deduplicate by ID
+    // "Tous" mode — aggregate members from all orgs in parallel, deduplicate
     const orgIds = await getAllOrgIds();
+    const results = await Promise.allSettled(orgIds.map((id) => listOrgMembers(id)));
     const seen = new Set<string>();
-    for (const id of orgIds) {
-      try {
-        const orgMembers = await listOrgMembers(id);
-        for (const m of orgMembers) {
-          if (!seen.has(m.id)) {
-            seen.add(m.id);
-            members.push(m);
-          }
+    for (const r of results) {
+      if (r.status !== "fulfilled") continue;
+      for (const m of r.value) {
+        if (!seen.has(m.id)) {
+          seen.add(m.id);
+          members.push(m);
         }
-      } catch {
-        // skip
       }
     }
   }

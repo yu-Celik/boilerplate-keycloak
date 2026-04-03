@@ -60,9 +60,3 @@ export interface OrgGroup {
 }
 
 export type OrgRole = "admin" | "manager" | "member";
-
-export interface OnboardingState {
-  hasOrg: boolean;
-  needsOnboarding: boolean;
-  existingOrgForDomain?: Organization | null;
-}

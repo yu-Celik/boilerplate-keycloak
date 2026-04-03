@@ -8,14 +8,17 @@ async function getMembersWithGroups(orgId: string) {
     getOrgGroups(orgId),
   ]);
 
-  // For each group, fetch its members
+  // Fetch group members in parallel
   const groupMembers = new Map<string, Set<string>>();
-  for (const group of groups) {
-    try {
-      const gMembers: { id: string }[] = await listGroupMembers(orgId, group.id);
-      groupMembers.set(group.name, new Set(gMembers.map((m) => m.id)));
-    } catch {
-      // skip
+  const groupResults = await Promise.allSettled(
+    groups.map(async (group) => {
+      const gMembers = await listGroupMembers(orgId, group.id);
+      return { name: group.name, memberIds: new Set(gMembers.map((m: { id: string }) => m.id)) };
+    })
+  );
+  for (const r of groupResults) {
+    if (r.status === "fulfilled") {
+      groupMembers.set(r.value.name, r.value.memberIds);
     }
   }
 
@@ -39,20 +42,17 @@ export default async function RolesPage() {
       // Admin API may not be available
     }
   } else {
-    // "Tous" mode — aggregate from all orgs, deduplicate
+    // "Tous" mode — aggregate from all orgs in parallel, deduplicate
     const orgIds = await getAllOrgIds();
+    const results = await Promise.allSettled(orgIds.map((id) => getMembersWithGroups(id)));
     const seen = new Set<string>();
-    for (const id of orgIds) {
-      try {
-        const members = await getMembersWithGroups(id);
-        for (const m of members) {
-          if (!seen.has(m.id)) {
-            seen.add(m.id);
-            membersWithGroups.push(m);
-          }
+    for (const r of results) {
+      if (r.status !== "fulfilled") continue;
+      for (const m of r.value) {
+        if (!seen.has(m.id)) {
+          seen.add(m.id);
+          membersWithGroups.push(m);
         }
-      } catch {
-        // skip
       }
     }
   }

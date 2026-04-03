@@ -7,8 +7,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar";
-import { listOrganizations, listOrgInvitations } from "@/lib/keycloak-admin";
-import type { OrgInvitation } from "@/types";
+import { getPendingInvitationsForUser } from "@/lib/keycloak-admin";
 
 export default async function DashboardLayout({
   children,
@@ -29,23 +28,12 @@ export default async function DashboardLayout({
     ? rawActiveOrg
     : orgAliases[0] ?? "__all__";
 
-  // Check for pending invitations for this user
+  // Check for pending invitations (domain-scoped, not full realm scan)
   const userEmail = session.user.email ?? "";
   let pendingInvitations: Array<{ orgId: string; orgName: string; invitationId: string }> = [];
   if (userEmail) {
     try {
-      const allOrgs = await listOrganizations();
-      for (const org of allOrgs) {
-        // Skip orgs the user is already a member of
-        if (orgAliases.includes(org.alias)) continue;
-        const invitations: OrgInvitation[] = await listOrgInvitations(org.id).catch(() => []);
-        const matching = invitations.filter(
-          (inv) => inv.email === userEmail && inv.status === "PENDING"
-        );
-        for (const inv of matching) {
-          pendingInvitations.push({ orgId: org.id, orgName: org.name, invitationId: inv.id });
-        }
-      }
+      pendingInvitations = await getPendingInvitationsForUser(userEmail, orgAliases);
     } catch {
       // non-critical
     }

@@ -10,12 +10,11 @@ import {
   getUserByEmail,
   createOrgGroup,
   addMemberToGroup,
-  listOrganizations,
   listOrgInvitations,
   deleteOrgInvitation,
+  getPendingInvitationsForUser,
 } from "@/lib/keycloak-admin";
 import { extractDomain, isPublicDomain } from "@/lib/email-domain";
-import type { OrgInvitation } from "@/types";
 
 const DEFAULT_GROUPS = ["Admin", "Managers", "Members"] as const;
 
@@ -43,22 +42,9 @@ export async function getOnboardingState() {
     }
   }
 
-  // Check for pending invitations across all orgs
-  let pendingInvitations: Array<{ orgId: string; orgName: string; invitationId: string }> = [];
-  try {
-    const allOrgs = await listOrganizations();
-    for (const org of allOrgs) {
-      const invitations: OrgInvitation[] = await listOrgInvitations(org.id).catch(() => []);
-      const matching = invitations.filter(
-        (inv) => inv.email === email && inv.status === "PENDING"
-      );
-      for (const inv of matching) {
-        pendingInvitations.push({ orgId: org.id, orgName: org.name, invitationId: inv.id });
-      }
-    }
-  } catch {
-    // non-critical
-  }
+  // Check for pending invitations (domain-scoped, not full realm scan)
+  const userOrgAliases = session.organization ? Object.keys(session.organization) : [];
+  const pendingInvitations = await getPendingInvitationsForUser(email, userOrgAliases).catch(() => []);
 
   return {
     email,
@@ -145,11 +131,27 @@ export async function acceptInvitationFromOnboarding(formData: FormData): Promis
   const invitationId = formData.get("invitationId") as string;
   if (!orgId || !invitationId) throw new Error("Missing parameters");
 
-  const kcUser = await getUserByEmail(session.user.email);
-  if (!kcUser?.id) throw new Error("User not found in Keycloak");
+  // SECURITY: Validate invitation belongs to this user and is pending
+  const invitations = await listOrgInvitations(orgId);
+  const invitation = invitations.find((inv) => inv.id === invitationId);
+  if (!invitation) throw new Error("Invitation introuvable");
+  if (invitation.email !== session.user.email) throw new Error("Accès refusé");
+  if (invitation.status !== "PENDING") throw new Error("Invitation expirée");
 
-  await addOrgMember(orgId, kcUser.id);
-  await deleteOrgInvitation(orgId, invitationId).catch(() => {});
+  const kcUser = await getUserByEmail(session.user.email);
+  if (!kcUser?.id) throw new Error("Utilisateur introuvable dans Keycloak");
+
+  // Add user to org (ignore 409 = already member)
+  try {
+    await addOrgMember(orgId, kcUser.id);
+  } catch (e) {
+    const msg = (e as Error).message;
+    if (!msg.includes("409")) throw e;
+  }
+
+  await deleteOrgInvitation(orgId, invitationId).catch((e) =>
+    console.error("Failed to delete invitation after acceptance:", e)
+  );
 
   // Re-auth to get fresh token with new org
   await signIn("keycloak", { redirectTo: "/" });
