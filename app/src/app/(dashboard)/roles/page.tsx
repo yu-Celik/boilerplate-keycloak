@@ -1,5 +1,7 @@
+import { auth } from "@/features/auth/lib/auth";
 import { getActiveOrgId, getAllOrgIds } from "@/features/organization/lib/active-org";
 import { ORG_GROUPS } from "@/features/shared/constants/org-groups";
+import type { OrgGroupName } from "@/features/shared/constants/org-groups";
 import { listOrgMembers, getOrgGroups, listGroupMembers } from "@/features/members/lib/members-admin";
 import type { OrgMember, OrgGroup } from "@/features/members/types";
 import {
@@ -11,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { RoleSelect } from "./role-select";
 
 async function getMembersWithGroups(orgId: string) {
   const [members, groups]: [OrgMember[], OrgGroup[]] = await Promise.all([
@@ -18,7 +21,6 @@ async function getMembersWithGroups(orgId: string) {
     getOrgGroups(orgId),
   ]);
 
-  // Fetch group members in parallel
   const groupMembers = new Map<string, Set<string>>();
   const groupResults = await Promise.allSettled(
     groups.map(async (group) => {
@@ -40,8 +42,24 @@ async function getMembersWithGroups(orgId: string) {
   }));
 }
 
+/** Return the highest role for a member based on their groups */
+function getHighestRole(groups: string[]): OrgGroupName {
+  if (groups.includes(ORG_GROUPS.ADMIN)) return ORG_GROUPS.ADMIN;
+  if (groups.includes(ORG_GROUPS.MANAGERS)) return ORG_GROUPS.MANAGERS;
+  return ORG_GROUPS.MEMBERS;
+}
+
+const roleBadgeClass: Record<string, string> = {
+  [ORG_GROUPS.ADMIN]: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  [ORG_GROUPS.MANAGERS]: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  [ORG_GROUPS.MEMBERS]: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
+};
+
 export default async function RolesPage() {
+  const session = await auth();
   const orgId = await getActiveOrgId();
+  const isAdmin = session?.orgRole === "admin";
+  const currentUserEmail = session?.user?.email;
 
   let membersWithGroups: Array<OrgMember & { groups: string[] }> = [];
 
@@ -52,7 +70,6 @@ export default async function RolesPage() {
       // Admin API may not be available
     }
   } else {
-    // "Tous" mode — aggregate from all orgs in parallel, deduplicate
     const orgIds = await getAllOrgIds();
     const results = await Promise.allSettled(orgIds.map((id) => getMembersWithGroups(id)));
     const seen = new Set<string>();
@@ -72,7 +89,9 @@ export default async function RolesPage() {
       <div>
         <h1 className="text-3xl font-bold">Rôles</h1>
         <p className="text-muted-foreground">
-          Consultez les rôles des membres de votre organisation
+          {isAdmin && orgId
+            ? "Gérez les rôles des membres de votre organisation"
+            : "Consultez les rôles des membres de votre organisation"}
         </p>
       </div>
 
@@ -82,7 +101,7 @@ export default async function RolesPage() {
             <TableRow>
               <TableHead>Membre</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Rôles</TableHead>
+              <TableHead>Rôle</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -96,40 +115,34 @@ export default async function RolesPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              membersWithGroups.map((member) => (
-                <TableRow key={member.id}>
-                  <TableCell className="text-sm">
-                    {member.firstName} {member.lastName}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {member.email}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {member.groups.length === 0 ? (
-                        <span className="text-sm text-muted-foreground italic">
-                          Aucun rôle
-                        </span>
+              membersWithGroups.map((member) => {
+                const highestRole = getHighestRole(member.groups);
+                const isSelf = member.email === currentUserEmail;
+
+                return (
+                  <TableRow key={member.id}>
+                    <TableCell className="text-sm">
+                      {member.firstName} {member.lastName}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {member.email}
+                    </TableCell>
+                    <TableCell>
+                      {isAdmin && orgId ? (
+                        <RoleSelect
+                          userId={member.id}
+                          currentRole={highestRole}
+                          isSelf={isSelf}
+                        />
                       ) : (
-                        member.groups.map((group) => (
-                          <Badge
-                            key={group}
-                            className={
-                              group === ORG_GROUPS.ADMIN
-                                ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                                : group === ORG_GROUPS.MANAGERS
-                                  ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                                  : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
-                            }
-                          >
-                            {group}
-                          </Badge>
-                        ))
+                        <Badge className={roleBadgeClass[highestRole] ?? ""}>
+                          {highestRole}
+                        </Badge>
                       )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>

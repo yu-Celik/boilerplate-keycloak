@@ -19,10 +19,11 @@ Application source code organized by feature-based architecture. Next.js 16 App 
 | `app/` | Next.js App Router — pages, layouts, API routes, error boundaries (see `app/AGENTS.md`) |
 | `features/` | Feature-based modules — auth, organization, invitations, members, admin, onboarding, settings. Each self-contained with lib, components, types (see `features/AGENTS.md`) |
 | `components/` | Shared layout components — AppSidebar, NavMain, NavUser, ThemeToggle, SubmitButton, PendingInvitationsBanner. UI primitives in `ui/` subdir (see `components/AGENTS.md`) |
-| `lib/` | Shared server-side utilities — auth config, utils only (see `lib/AGENTS.md`) |
-| `types/` | TypeScript definitions — NextAuth augmentations, global type exports |
-| `hooks/` | Custom React hooks — e.g., `use-mobile.tsx` |
-| `public/` | Static assets |
+| `lib/` | Shared server-side utilities — auth config, Admin API client, active org resolver, email domain utils (see `lib/AGENTS.md`) |
+| `types/` | TypeScript definitions — NextAuth augmentations, global type exports (see `types/AGENTS.md`) |
+| `hooks/` | Custom React hooks — `useIsMobile()` for responsive mobile detection (see `hooks/AGENTS.md`) |
+| `styles/` | Shared CSS and theme tokens — Tailwind v4 CSS-first, theme-tokens.css with light/dark mode variables (see `styles/AGENTS.md`) |
+| `public/` | Static assets — empty (see `public/AGENTS.md`) |
 
 ## For AI Agents
 

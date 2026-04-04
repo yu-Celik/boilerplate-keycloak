@@ -27,7 +27,11 @@ if (process.env.NODE_ENV === "production") {
 const KC_PUBLIC = process.env.KC_ISSUER!;
 const KC_INTERNAL = process.env.KC_ISSUER_INTERNAL!;
 
-async function refreshAccessToken(token: JWT): Promise<JWT> {
+// Mutex to prevent concurrent refresh token requests (Next.js SSR can
+// trigger multiple parallel auth() calls that all see an expired token).
+let refreshPromise: Promise<JWT> | null = null;
+
+async function doRefresh(token: JWT): Promise<JWT> {
   const response = await fetch(
     `${KC_INTERNAL}/protocol/openid-connect/token`,
     {
@@ -55,6 +59,14 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
     accessTokenExpiresAt: Date.now() + refreshed.expires_in * 1000,
     idToken: refreshed.id_token ?? token.idToken,
   };
+}
+
+async function refreshAccessToken(token: JWT): Promise<JWT> {
+  if (refreshPromise) return refreshPromise;
+  refreshPromise = doRefresh(token).finally(() => {
+    refreshPromise = null;
+  });
+  return refreshPromise;
 }
 
 export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({

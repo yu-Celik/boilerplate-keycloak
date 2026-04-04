@@ -6,6 +6,12 @@
 ## Purpose
 Member management — list members, manage organization groups (Admin/Managers/Members), role-based authorization. Provides `assertOrgRole()` for server-side RBAC enforcement.
 
+## Subdirectories
+
+| Directory | Purpose |
+|-----------|---------|
+| `lib/` | Member management and role-based authorization |
+
 ## Key Files
 
 | File | Description |

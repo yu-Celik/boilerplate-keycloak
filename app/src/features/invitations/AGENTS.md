@@ -6,6 +6,14 @@
 ## Purpose
 Team invitations — send, revoke, and accept invitations. Pending invitations banner shown on dashboard. File-based role store (temporary; needs database in production). Tracks invitation role assignment for newly invited members.
 
+## Subdirectories
+
+| Directory | Purpose |
+|-----------|---------|
+| `actions/` | Server actions for accepting invitations |
+| `components/` | UI components for invitation display and management |
+| `lib/` | Invitation management and role store utilities |
+
 ## Key Files
 
 | File | Description |

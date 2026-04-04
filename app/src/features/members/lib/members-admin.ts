@@ -64,6 +64,21 @@ export async function addMemberToGroup(
 }
 
 
+export async function removeMemberFromGroup(
+  orgId: string,
+  groupId: string,
+  userId: string
+) {
+  const res = await adminFetch(
+    `/organizations/${orgId}/groups/${groupId}/members/${userId}`,
+    { method: "DELETE" }
+  );
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Failed to remove member from group: ${res.status} ${body}`);
+  }
+}
+
 export async function assertOrgRole(
   orgId: string,
   userEmail: string,

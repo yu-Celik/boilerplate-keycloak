@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-04-04 -->
+<!-- Generated: 2026-04-04 | Updated: 2026-04-04 -->
 
 # keycloakify
 
@@ -25,10 +25,19 @@ Custom Keycloak login + account themes built with React 19 using Keycloakify v11
 
 | Directory | Purpose |
 |-----------|---------|
+| `src/` | Source directory for theme implementation |
 | `src/login/` | Custom login theme pages (Keycloakify FTL page adapters) |
+| `src/login/pages/` | Login theme page components (14 pages) |
+| `src/login/components/` | Template and footer layout components |
 | `src/account/` | Account management theme (Keycloak built-in v3 theme with minimal custom styling) |
+| `src/account/pages/` | Account console page components (8 pages) |
+| `src/account/components/` | Layout and shell components for account theme |
 | `src/components/` | Reusable React components for login pages (forms, inputs, buttons) |
+| `src/components/ui/` | shadcn/ui component library (button, input, card, alert, label, badge, separator, table) |
 | `src/lib/` | Utilities for Keycloakify pages (theme helpers, validation) |
+| `src/shared/` | Shared assets and components for both themes |
+| `src/shared/components/` | Shared custom components used by both login and account themes |
+| `src/styles/` | Global styles and theme token definitions |
 | `dist/` | Built theme JAR output — mounted to Keycloak providers directory |
 
 ## For AI Agents

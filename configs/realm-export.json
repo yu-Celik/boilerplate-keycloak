@@ -12,7 +12,7 @@
   "organizationsEnabled": true,
   "sslRequired": "external",
   "defaultSignatureAlgorithm": "RS256",
-  "revokeRefreshToken": true,
+  "revokeRefreshToken": false,
   "accessTokenLifespan": 300,
   "ssoSessionIdleTimeout": 1800,
   "ssoSessionMaxLifespan": 36000,

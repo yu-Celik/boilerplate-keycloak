@@ -6,6 +6,14 @@
 ## Purpose
 Organization management — multi-tenancy core. CRUD organizations via Keycloak Admin API, active org resolution from cookie, email domain utilities (public vs professional), team switcher component. Contains the shared `keycloak-client.ts` that provides service account authentication and admin API utilities for all features.
 
+## Subdirectories
+
+| Directory | Purpose |
+|-----------|---------|
+| `actions/` | Server actions for organization operations (switching orgs) |
+| `components/` | Team switcher and organization UI components |
+| `lib/` | Organization CRUD, active org resolution, email domain utilities |
+
 ## Key Files
 
 | File | Description |

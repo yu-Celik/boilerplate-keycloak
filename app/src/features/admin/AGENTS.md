@@ -6,6 +6,12 @@
 ## Purpose
 Platform administration feature for super-admin operations. List all organizations with member statistics, suspend/reactivate organizations. Restricted to platform-admin realm role.
 
+## Subdirectories
+
+| Directory | Purpose |
+|-----------|---------|
+| `lib/` | Super-admin operations for platform management |
+
 ## Key Files
 
 | File | Description |

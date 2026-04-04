@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-04-04 -->
+<!-- Generated: 2026-04-04 (updated) -->
 
 # features
 
@@ -11,12 +11,25 @@ Feature-based module structure for domain-driven design. Each feature is self-co
 | Directory | Purpose |
 |-----------|---------|
 | `auth/` | Authentication — NextAuth config, OIDC with Keycloak, JWT token refresh, types (see `auth/AGENTS.md`) |
-| `organization/` | Multi-tenancy core — org CRUD, active org resolution, email domain utils, shared keycloak-client (see `organization/AGENTS.md`) |
-| `invitations/` | Team invitations — send/revoke/accept invitations, pending banner, file-based role store (see `invitations/AGENTS.md`) |
-| `members/` | Organization members — list members, manage groups, role-based RBAC (see `members/AGENTS.md`) |
+| `auth/lib/` | NextAuth configuration and token management |
+| `auth/components/` | Login redirect and logout button components |
 | `admin/` | Platform administration — super-admin operations for org lifecycle (see `admin/AGENTS.md`) |
-| `onboarding/` | New user onboarding — org creation wizard, initial setup flow |
+| `admin/lib/` | Super-admin operations for platform management |
+| `invitations/` | Team invitations — send/revoke/accept invitations, pending banner, file-based role store (see `invitations/AGENTS.md`) |
+| `invitations/lib/` | Invitation management and role store utilities |
+| `invitations/actions/` | Server actions for accepting invitations |
+| `invitations/components/` | UI components for invitation display and management |
+| `members/` | Organization members — list members, manage groups, role-based RBAC (see `members/AGENTS.md`) |
+| `members/lib/` | Member management and role-based authorization |
+| `organization/` | Multi-tenancy core — org CRUD, active org resolution, email domain utils, shared keycloak-client (see `organization/AGENTS.md`) |
+| `organization/lib/` | Organization CRUD, active org resolution, email domain utilities |
+| `organization/actions/` | Server actions for organization operations |
+| `organization/components/` | Team switcher and organization UI components |
+| `shared/` | Shared utilities, constants, and components |
+| `shared/lib/` | Keycloak client and user utilities |
+| `shared/constants/` | Organization group definitions |
 | `settings/` | Org settings — auto-join toggle, domain verification, email domain configuration |
+| `onboarding/` | New user onboarding — org creation wizard, initial setup flow |
 
 ## For AI Agents
 

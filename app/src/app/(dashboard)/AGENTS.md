@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-04-03 -->
+<!-- Generated: 2026-04-04 -->
 
 # (dashboard)
 
@@ -12,32 +12,24 @@ Protected route group containing all authenticated dashboard pages. Every page i
 |------|-------------|
 | `layout.tsx` | Dashboard shell — Server Component. Reads session + `active-org` cookie, checks for pending invitations (domain-scoped), renders `AppSidebar` + `PendingInvitationsBanner` + page content area |
 | `actions.ts` | Server Actions: `switchOrg(alias)` sets httpOnly `active-org` cookie and calls `revalidatePath("/")` |
-| `accept-invitation-action.ts` | Server Action: `acceptInvitation()` — validates invitation, adds user to org, deletes invitation, forces re-auth |
-| `members/page.tsx` | Lists org members. In `__all__` mode: fetches all org IDs, runs `listOrgMembers()` in parallel with `Promise.allSettled()`, deduplicates by user ID |
-| `invitations/page.tsx` | Lists pending invitations for the active org with revoke button |
-| `invitations/actions.ts` | Server Actions: `inviteUser()` and `revokeInvitation()` — both call `assertOrgRole()` to verify Admin or Manager role before proceeding |
-| `roles/page.tsx` | Lists org groups (Admin, Managers, Members) and their members |
-| `settings/page.tsx` | Shows org details (name, alias, ID, domains). Reads active org via `getActiveOrgId()`. Shows "Sélectionnez une organisation" when in `__all__` mode |
-| `contacts/page.tsx` | Demo contacts module with multi-tenant scope filtering |
-| `tasks/page.tsx` | Demo tasks module with role-based visibility (admins/managers see all, members see only their own) |
+| `page.tsx` | Dashboard home page — shows org details (name, ID), member count, and JWT org claims (dev only) |
 
 ## Subdirectories
 
 | Directory | Purpose |
 |-----------|---------|
-| `members/` | Organization member list page |
-| `invitations/` | Invitation management — list, send, revoke |
-| `roles/` | Organization group/role management |
-| `settings/` | Organization settings — name, alias, domains, danger zone |
-| `contacts/` | Demo contacts module (in-memory data from `lib/demo/`) |
-| `tasks/` | Demo tasks module (in-memory data from `lib/demo/`) |
+| `members/` | Organization member list (see `members/AGENTS.md`) |
+| `invitations/` | Invitation management — list, send, revoke (see `invitations/AGENTS.md`) |
+| `roles/` | Organization group/role management (see `roles/AGENTS.md`) |
+| `settings/` | Organization settings — name, alias, domains, auto-join (see `settings/AGENTS.md`) |
+| `admin/` | Platform admin dashboard — org stats, suspend/reactivate (see `admin/AGENTS.md`) |
 
 ## For AI Agents
 
 ### Working In This Directory
 - All pages are Server Components that call `getActiveOrgId()` or `getAllOrgIds()` from `@/lib/active-org`
 - `getActiveOrgId()` returns `null` when `active-org` cookie is `__all__` — pages must handle the null case gracefully
-- Server Actions in `actions.ts` and `invitations/actions.ts` use `assertOrgRole()` for authorization — never skip this check
+- Server Actions in subdirectories use `assertOrgRole()` for authorization — never skip this check
 - `layout.tsx` reads the `active-org` cookie directly (same logic as `active-org.ts`) because layout must resolve it without an extra server round-trip
 
 ### Active-Org Resolution Logic
@@ -78,8 +70,8 @@ await assertOrgRole(orgId, session.user.email, ["Admin", "Managers"]);
 - Special value `__all__` shows data across all user orgs (aggregated, deduplicated)
 
 ## Dependencies
-- `@/lib/active-org` — `getActiveOrgId()`, `getAllOrgIds()`
-- `@/lib/keycloak-admin` — member, invitation, group, org operations
-- `@/lib/scope-filter` — `buildScopeFilter()`, `filterRecords()` for demo modules
-- `@/components/app-sidebar` — sidebar shell
+- `@/features/auth/lib/auth` — `auth()` for session, roles, org claims
+- `@/features/organization/lib/active-org` — `getActiveOrgId()`, `getAllOrgIds()`
+- `@/features/organization/lib/organization-admin` — org operations
+- `@/components/app-sidebar` — sidebar shell component
 - `@/components/pending-invitations-banner` — top banner for pending org invitations

@@ -18,10 +18,17 @@ Custom Keycloak theme source code (React 19, Tailwind v4, shadcn/ui). Dual theme
 | Directory | Purpose |
 |-----------|---------|
 | `login/` | Login theme — 14 custom pages (login, password, register, reset, verify, update profile/password, OTP, WebAuthn, org selection, IdP review, terms, error, consent), KcPage router, KcContext extensions, i18n setup (see `login/AGENTS.md`) |
+| `login/pages/` | Login theme page components (14 pages) |
+| `login/components/` | Template and footer layout components |
 | `account/` | Account console theme — 8 custom pages (personal info, signing in, 2FA, applications, device activity, groups, linked accounts, activity log), KcPage router, Template sidebar, i18n setup (see `account/AGENTS.md`) |
-| `shared/` | Shared theme CSS: `globals.css` (Tailwind directives, theme tokens), `theme.css` (glassmorphism, color scale) |
-| `components/ui/` | shadcn/ui generated Radix primitives: button, input, card, alert, label, separator, badge, table (do not edit) |
+| `account/pages/` | Account console page components (8 pages) |
+| `account/components/` | Layout and shell components for account theme |
+| `components/` | Reusable React components (shadcn/ui) |
+| `components/ui/` | shadcn/ui generated Radix primitives: button, input, card, alert, label, separator, badge, table |
 | `lib/` | Utility functions — `utils.ts` (cn() for class merging) |
+| `shared/` | Shared theme CSS and custom components |
+| `shared/components/` | Shared custom components used by both themes |
+| `styles/` | Global styles and theme token definitions |
 
 ## For AI Agents
 

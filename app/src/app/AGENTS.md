@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-04-03 -->
+<!-- Generated: 2026-04-04 -->
 
 # app (App Router)
 

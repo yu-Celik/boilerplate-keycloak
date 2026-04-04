@@ -6,6 +6,13 @@
 ## Purpose
 Authentication feature. NextAuth v5.0.0-beta.25 configuration with Keycloak OIDC provider, JWT token refresh callback, session extraction of org/role claims, and login redirect component.
 
+## Subdirectories
+
+| Directory | Purpose |
+|-----------|---------|
+| `lib/` | NextAuth configuration and token management |
+| `components/` | Login redirect and logout button components |
+
 ## Key Files
 
 | File | Description |
