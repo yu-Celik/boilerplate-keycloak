@@ -1,8 +1,6 @@
-import { MouseEvent, useRef, useState } from "react";
 import type { PageProps } from "keycloakify/login/pages/PageProps";
 import type { KcContext } from "../KcContext";
 import type { I18n } from "../i18n";
-import { Button } from "@/components/ui/button";
 
 // SelectOrganization maps to select-authenticator.ftl in Keycloakify v11.
 type Props = PageProps<Extract<KcContext, { pageId: "select-authenticator.ftl" }>, I18n>;

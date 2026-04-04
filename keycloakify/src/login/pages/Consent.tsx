@@ -1,14 +1,13 @@
-import { kcSanitize } from "keycloakify/lib/kcSanitize";
 import type { PageProps } from "keycloakify/login/pages/PageProps";
 import type { KcContext } from "../KcContext";
 import type { I18n } from "../i18n";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
-export default function Consent(props: PageProps<Extract<KcContext, { pageId: "consent.ftl" }>, I18n>) {
+export default function Consent(props: PageProps<Extract<KcContext, { pageId: "login-oauth-grant.ftl" }>, I18n>) {
     const { kcContext, i18n, doUseDefaultCss, Template, classes } = props;
 
-    const { url, oauth, client } = kcContext;
+    const { url, oauth } = kcContext;
     const { msg, msgStr, advancedMsg, advancedMsgStr } = i18n;
 
     return (
@@ -20,13 +19,8 @@ export default function Consent(props: PageProps<Extract<KcContext, { pageId: "c
             bodyClassName="oauth"
             headerNode={
                 <div className="space-y-2">
-                    {client.attributes.logoUri && (
-                        <img src={client.attributes.logoUri} alt={client.name ?? client.clientId} className="h-10 object-contain" />
-                    )}
                     <p className="text-base font-normal text-muted-foreground">
-                        {client.name
-                            ? msg("oauthGrantTitle", advancedMsgStr(client.name))
-                            : msg("oauthGrantTitle", client.clientId)}
+                        {msg("oauthGrantTitle", advancedMsgStr(oauth.client))}
                     </p>
                 </div>
             }
@@ -51,32 +45,6 @@ export default function Consent(props: PageProps<Extract<KcContext, { pageId: "c
                         ))}
                     </ul>
                 </div>
-
-                {(client.attributes.policyUri || client.attributes.tosUri) && (
-                    <div className="rounded-md bg-muted p-3 text-sm space-y-1">
-                        <p className="font-medium">
-                            {client.name
-                                ? msg("oauthGrantInformation", advancedMsgStr(client.name))
-                                : msg("oauthGrantInformation", client.clientId)}
-                        </p>
-                        {client.attributes.tosUri && (
-                            <p>
-                                {msg("oauthGrantReview")}{" "}
-                                <a href={client.attributes.tosUri} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                                    {msg("oauthGrantTos")}
-                                </a>
-                            </p>
-                        )}
-                        {client.attributes.policyUri && (
-                            <p>
-                                {msg("oauthGrantReview")}{" "}
-                                <a href={client.attributes.policyUri} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                                    {msg("oauthGrantPolicy")}
-                                </a>
-                            </p>
-                        )}
-                    </div>
-                )}
 
                 <Separator />
 

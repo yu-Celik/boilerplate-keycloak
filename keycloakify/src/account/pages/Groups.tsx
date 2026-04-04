@@ -7,8 +7,7 @@ import { Badge } from "@/components/ui/badge";
 // KcContext does not have a specific "groups.ftl" type in keycloakify v11,
 // so we use the generic KcContext type here.
 export default function Groups(props: PageProps<KcContext, I18n>) {
-    const { i18n, Template } = props;
-    const { msg } = i18n;
+    const { Template } = props;
 
     // Groups data is not in the standard KcContext type.
     // Access via kcContext properties if extended, or render a placeholder.
@@ -20,7 +19,7 @@ export default function Groups(props: PageProps<KcContext, I18n>) {
             <div className="space-y-6">
                 <div>
                     <h2 className="text-lg font-semibold text-foreground tracking-tight">
-                        {msg("myGroups") ?? "My Groups"}
+                        {"My Groups"}
                     </h2>
                     <p className="text-sm text-muted-foreground mt-1">
                         Groups you are a member of.

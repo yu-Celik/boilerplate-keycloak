@@ -171,7 +171,7 @@ export default function KcPage(props: { kcContext: KcContext }) {
                                 doUseDefaultCss={false}
                             />
                         );
-                    case "consent.ftl":
+                    case "login-oauth-grant.ftl":
                         return (
                             <Consent
                                 kcContext={kcContext}

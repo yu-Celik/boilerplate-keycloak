@@ -9,7 +9,6 @@ const SigningIn = lazy(() => import("./pages/SigningIn"));
 const DeviceActivity = lazy(() => import("./pages/DeviceActivity"));
 const Applications = lazy(() => import("./pages/Applications"));
 const LinkedAccounts = lazy(() => import("./pages/LinkedAccounts"));
-const Groups = lazy(() => import("./pages/Groups"));
 const Totp = lazy(() => import("./pages/Totp"));
 const Log = lazy(() => import("./pages/Log"));
 

@@ -43,7 +43,7 @@ services:
       - ./configs/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
       - ./configs/init-realm.sh:/opt/keycloak/data/import/init-realm.sh:ro
       - ./configs/workflows/:/opt/keycloak/data/import/workflows/:ro
-      - ./keycloakify/dist/:/opt/keycloak/providers/:ro
+      - ./keycloakify/dist_keycloak/:/opt/keycloak/providers/:ro
     networks:
       - internal
     depends_on:
