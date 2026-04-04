@@ -151,7 +151,21 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
             const orgAliases = Object.keys(org);
             session.activeOrg = orgAliases[0];
 
-            const activeOrgData = org[session.activeOrg];
+            // Derive orgRole from the active org cookie (not always the first alias)
+            // Read the cookie to determine which org is actually selected
+            const { cookies } = await import("next/headers");
+            let resolvedAlias = orgAliases[0];
+            try {
+              const cookieStore = await cookies();
+              const rawActiveOrg = cookieStore.get("active-org")?.value;
+              if (rawActiveOrg && rawActiveOrg !== "__all__" && orgAliases.includes(rawActiveOrg)) {
+                resolvedAlias = rawActiveOrg;
+              }
+            } catch {
+              // cookies() may not be available in all contexts (e.g., API routes)
+            }
+
+            const activeOrgData = org[resolvedAlias];
             const groups: string[] = activeOrgData?.groups ?? [];
             if (groups.some((g: string) => g.includes("/Admin"))) {
               session.orgRole = "admin";

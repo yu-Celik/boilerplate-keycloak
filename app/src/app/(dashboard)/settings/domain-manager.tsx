@@ -99,35 +99,41 @@ export function DomainManager({
           )}
         </div>
 
-        {!verified && verifyToken && (
+        {!verified && (
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Ajoutez cet enregistrement DNS TXT à votre domaine :
-            </p>
-            <code className="block rounded-md bg-muted p-3 text-xs font-mono">
-              keycloak-verify={verifyToken}
-            </code>
-            <p className="text-xs text-muted-foreground">
-              La propagation DNS peut prendre jusqu&apos;à 48h.
-            </p>
-            {isAdmin && (
-              <div className="flex gap-2">
-                <form
-                  action={async () => {
-                    setError(null);
-                    try {
-                      await verifyDomain();
-                    } catch (e) {
-                      setError((e as Error).message);
-                    }
-                  }}
-                >
-                  <SubmitButton>Vérifier maintenant</SubmitButton>
-                </form>
-                <form action={removeDomain}>
-                  <SubmitButton variant="destructive">Supprimer</SubmitButton>
-                </form>
-              </div>
+            {isAdmin && verifyToken ? (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  Ajoutez cet enregistrement DNS TXT à votre domaine :
+                </p>
+                <code className="block rounded-md bg-muted p-3 text-xs font-mono">
+                  keycloak-verify={verifyToken}
+                </code>
+                <p className="text-xs text-muted-foreground">
+                  La propagation DNS peut prendre jusqu&apos;à 48h.
+                </p>
+                <div className="flex gap-2">
+                  <form
+                    action={async () => {
+                      setError(null);
+                      try {
+                        await verifyDomain();
+                      } catch (e) {
+                        setError((e as Error).message);
+                      }
+                    }}
+                  >
+                    <SubmitButton>Vérifier maintenant</SubmitButton>
+                  </form>
+                  <form action={removeDomain}>
+                    <SubmitButton variant="destructive">Supprimer</SubmitButton>
+                  </form>
+                </div>
+              </>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Domaine en attente de vérification. Contactez un administrateur.
+              </p>
             )}
             {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
           </div>

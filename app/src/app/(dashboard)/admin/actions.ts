@@ -6,7 +6,8 @@ import { revalidatePath } from "next/cache";
 
 async function assertPlatformAdmin() {
   const session = await auth();
-  if (session?.platformRole !== "platform-admin") {
+  if (!session?.user?.email) throw new Error("Non authentifié");
+  if (session.platformRole !== "platform-admin") {
     throw new Error("Access denied");
   }
 }

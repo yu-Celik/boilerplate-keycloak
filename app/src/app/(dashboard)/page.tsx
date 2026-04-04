@@ -68,10 +68,10 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      {currentOrg && (
+      {process.env.NODE_ENV === "development" && currentOrg && (
         <Card>
           <CardHeader>
-            <h3 className="font-semibold">Organization JWT Claims</h3>
+            <h3 className="font-semibold">Organization JWT Claims (dev only)</h3>
           </CardHeader>
           <CardContent>
             <pre className="overflow-auto rounded bg-muted p-4 text-sm">

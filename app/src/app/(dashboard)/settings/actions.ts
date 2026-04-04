@@ -101,7 +101,7 @@ export async function verifyDomain() {
 
   if (!found) {
     throw new Error(
-      `Enregistrement DNS TXT "keycloak-verify=${expectedToken}" introuvable pour ${domain.name}`
+      `Enregistrement DNS TXT de vérification introuvable pour ${domain.name}. Consultez les paramètres pour le token attendu.`
     );
   }
 

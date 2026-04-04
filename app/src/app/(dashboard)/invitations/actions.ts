@@ -26,6 +26,11 @@ export async function inviteUser(formData: FormData) {
   // SECURITY: Verify caller is Admin or Manager
   await assertOrgRole(orgId, session.user.email, [ORG_GROUPS.ADMIN, ORG_GROUPS.MANAGERS]);
 
+  // SECURITY: Managers cannot grant Admin role (privilege escalation prevention)
+  if (role === ORG_GROUPS.ADMIN) {
+    await assertOrgRole(orgId, session.user.email, [ORG_GROUPS.ADMIN]);
+  }
+
   await sendOrgInvitation(orgId, email);
   await saveInvitationRole(orgId, email, role);
   redirect("/invitations");

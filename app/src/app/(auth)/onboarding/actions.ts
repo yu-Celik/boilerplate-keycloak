@@ -24,7 +24,7 @@ import {
 } from "@/features/invitations/lib/invitations-admin";
 import { getInvitationRole, deleteInvitationRole } from "@/features/invitations/lib/role-store";
 import { extractDomain, isPublicDomain } from "@/features/organization/lib/email-domain";
-import { ORG_GROUPS, DEFAULT_GROUPS } from "@/features/shared/constants/org-groups";
+import { ORG_GROUPS, DEFAULT_GROUPS, type OrgGroupName } from "@/features/shared/constants/org-groups";
 
 export async function getOnboardingState() {
   const session = await auth();
@@ -167,9 +167,9 @@ export async function acceptInvitationFromOnboarding(formData: FormData): Promis
     if (!msg.includes("409")) throw e;
   }
 
-  // Assign the role/group chosen at invitation time
+  // Assign the role/group chosen at invitation time (re-validate stored value)
   const role = await getInvitationRole(orgId, session.user.email).catch(() => null);
-  const targetRole = role ?? ORG_GROUPS.MEMBERS;
+  const targetRole = (role && DEFAULT_GROUPS.includes(role as OrgGroupName)) ? role : ORG_GROUPS.MEMBERS;
   try {
     const groups = await getOrgGroups(orgId);
     const targetGroup = groups.find((g) => g.name === targetRole);

@@ -1,7 +1,7 @@
 "use server";
 
 import { auth, signIn } from "@/features/auth/lib/auth";
-import { ORG_GROUPS } from "@/features/shared/constants/org-groups";
+import { ORG_GROUPS, DEFAULT_GROUPS, type OrgGroupName } from "@/features/shared/constants/org-groups";
 import { addOrgMember, getOrgGroups, addMemberToGroup } from "@/features/members/lib/members-admin";
 import { getUserByEmail } from "@/features/shared/lib/keycloak-user";
 import { listOrgInvitations, deleteOrgInvitation } from "@/features/invitations/lib/invitations-admin";
@@ -33,9 +33,9 @@ export async function acceptInvitation(formData: FormData) {
     if (!msg.includes("409")) throw e;
   }
 
-  // Assign the role/group chosen at invitation time
+  // Assign the role/group chosen at invitation time (re-validate stored value)
   const role = await getInvitationRole(orgId, session.user.email).catch(() => null);
-  const targetRole = role ?? ORG_GROUPS.MEMBERS;
+  const targetRole = (role && DEFAULT_GROUPS.includes(role as OrgGroupName)) ? role : ORG_GROUPS.MEMBERS;
   try {
     const groups = await getOrgGroups(orgId);
     const targetGroup = groups.find((g) => g.name === targetRole);
