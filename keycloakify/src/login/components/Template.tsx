@@ -4,6 +4,7 @@ import type { TemplateProps } from "keycloakify/login/TemplateProps";
 import { useSetClassName } from "keycloakify/tools/useSetClassName";
 import { useInitialize } from "keycloakify/login/Template.useInitialize";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Undo2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { I18n } from "../i18n";
 import type { KcContext } from "../KcContext";
@@ -172,9 +173,10 @@ export default function Template(props: TemplateProps<KcContext, I18n>) {
                                         id="reset-login"
                                         href={url.loginRestartFlowUrl}
                                         aria-label={msgStr("restartLoginTooltip")}
-                                        className="shrink-0 text-xs text-primary hover:underline underline-offset-2 transition-colors"
+                                        title={msgStr("restartLoginTooltip")}
+                                        className="shrink-0 inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
                                     >
-                                        {msg("restartLoginTooltip")}
+                                        <Undo2 className="h-4 w-4" aria-hidden="true" />
                                     </a>
                                 </div>
                             ) : (
