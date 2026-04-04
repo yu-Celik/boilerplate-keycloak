@@ -70,15 +70,18 @@ export default function LoginUpdatePassword(props: PageProps<Extract<KcContext, 
                             name="logout-sessions"
                             value="on"
                             defaultChecked
-                            className="h-4 w-4 rounded border-input"
+                            className="h-4 w-4 rounded border-border/60 bg-secondary/20 accent-primary cursor-pointer ring-1 ring-border/40"
                         />
-                        <label htmlFor="logout-sessions" className="text-sm">
+                        <Label
+                            htmlFor="logout-sessions"
+                            className="text-sm text-muted-foreground cursor-pointer select-none font-normal"
+                        >
                             {msg("logoutOtherSessions")}
-                        </label>
+                        </Label>
                     </div>
 
                     <div className="flex gap-2 pt-2">
-                        <Button type="submit" className={isAppInitiatedAction ? "" : "w-full"}>
+                        <Button type="submit" className="w-full">
                             {msgStr("doSubmit")}
                         </Button>
                         {isAppInitiatedAction && (

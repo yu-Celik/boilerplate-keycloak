@@ -7,7 +7,6 @@ import type { PageProps } from "keycloakify/login/pages/PageProps";
 import type { KcContext } from "../KcContext";
 import type { I18n } from "../i18n";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 type Props = PageProps<Extract<KcContext, { pageId: "register.ftl" }>, I18n> & {
     UserProfileFormFields: LazyOrNot<(props: UserProfileFormFieldsProps) => React.ReactElement | null>;
@@ -77,31 +76,31 @@ export default function Register(props: Props) {
                         </div>
                     )}
 
-                    <div className="flex items-center justify-between pt-2">
-                        <a href={url.loginUrl} className="text-sm text-primary hover:underline">
-                            {msg("backToLogin")}
-                        </a>
-
+                    <div className="space-y-3 pt-2">
                         {recaptchaRequired && !recaptchaVisible && recaptchaAction !== undefined ? (
-                            <button
-                                className={cn(
-                                    "inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 g-recaptcha"
-                                )}
+                            <Button
+                                className="w-full g-recaptcha"
                                 data-sitekey={recaptchaSiteKey}
                                 data-callback="onSubmitRecaptcha"
                                 data-action={recaptchaAction}
                                 type="submit"
                             >
                                 {msg("doRegister")}
-                            </button>
+                            </Button>
                         ) : (
                             <Button
                                 type="submit"
+                                className="w-full"
                                 disabled={!isFormSubmittable || (termsAcceptanceRequired && !areTermsAccepted)}
                             >
                                 {msg("doRegister")}
                             </Button>
                         )}
+                        <div className="flex justify-center">
+                            <Button variant="link" asChild className="text-sm">
+                                <a href={url.loginUrl}>{msg("backToLogin")}</a>
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </form>

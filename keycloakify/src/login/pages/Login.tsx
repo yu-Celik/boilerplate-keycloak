@@ -221,12 +221,12 @@ export default function Login(props: Props) {
                                 defaultChecked={!!login.rememberMe}
                                 className="h-4 w-4 rounded border-border/60 bg-secondary/20 accent-primary cursor-pointer ring-1 ring-border/40"
                             />
-                            <label
+                            <Label
                                 htmlFor="rememberMe"
-                                className="text-xs text-muted-foreground cursor-pointer select-none"
+                                className="text-xs text-muted-foreground cursor-pointer select-none font-normal"
                             >
                                 {msg("rememberMe")}
-                            </label>
+                            </Label>
                         </div>
                     )}
 

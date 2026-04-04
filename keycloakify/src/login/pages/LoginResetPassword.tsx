@@ -51,11 +51,15 @@ export default function LoginResetPassword(props: PageProps<Extract<KcContext, {
                         )}
                     </div>
 
-                    <div className="flex items-center justify-between pt-2">
-                        <a href={url.loginUrl} className="text-sm text-primary hover:underline">
-                            {msg("backToLogin")}
-                        </a>
-                        <Button type="submit">{msgStr("doSubmit")}</Button>
+                    <div className="space-y-3 pt-2">
+                        <Button type="submit" className="w-full">
+                            {msgStr("doSubmit")}
+                        </Button>
+                        <div className="flex justify-center">
+                            <Button variant="link" asChild className="text-sm">
+                                <a href={url.loginUrl}>{msg("backToLogin")}</a>
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </form>
