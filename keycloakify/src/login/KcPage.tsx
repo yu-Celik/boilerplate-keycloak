@@ -19,6 +19,7 @@ const LoginUpdateProfile = lazy(() => import("./pages/LoginUpdateProfile"));
 const LoginUpdatePassword = lazy(() => import("./pages/LoginUpdatePassword"));
 const LoginOtp = lazy(() => import("./pages/LoginOtp"));
 const WebauthnAuthenticate = lazy(() => import("./pages/WebauthnAuthenticate"));
+const LoginUsername = lazy(() => import("./pages/LoginUsername"));
 const SelectOrganization = lazy(() => import("./pages/SelectOrganization"));
 const LoginIdpReviewProfile = lazy(() => import("./pages/LoginIdpReviewProfile"));
 const Terms = lazy(() => import("./pages/Terms"));
@@ -38,6 +39,16 @@ export default function KcPage(props: { kcContext: KcContext }) {
                     case "login.ftl":
                         return (
                             <Login
+                                kcContext={kcContext}
+                                i18n={i18n}
+                                classes={classes}
+                                Template={Template}
+                                doUseDefaultCss={false}
+                            />
+                        );
+                    case "login-username.ftl":
+                        return (
+                            <LoginUsername
                                 kcContext={kcContext}
                                 i18n={i18n}
                                 classes={classes}
