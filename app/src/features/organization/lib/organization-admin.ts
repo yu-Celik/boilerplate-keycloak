@@ -17,9 +17,10 @@ export async function getOrganization(orgId: string): Promise<Organization> {
 
 export async function updateOrganization(
   orgId: string,
-  data: Partial<Pick<Organization, "name" | "alias" | "attributes" | "domains" | "enabled">>
+  data: Partial<Pick<Organization, "name" | "alias" | "attributes" | "domains" | "enabled">>,
+  existingOrg?: Organization
 ) {
-  const org = await getOrganization(orgId);
+  const org = existingOrg ?? await getOrganization(orgId);
   const res = await adminFetch(`/organizations/${orgId}`, {
     method: "PUT",
     body: JSON.stringify({ ...org, ...data }),
