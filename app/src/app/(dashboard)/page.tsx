@@ -1,5 +1,6 @@
-import { auth } from "@/lib/auth";
-import { listOrganizations } from "@/lib/keycloak-admin";
+import { auth } from "@/features/auth/lib/auth";
+import { listOrganizations } from "@/features/organization/lib/organization-admin";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -29,39 +30,55 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-lg border bg-card p-6">
-          <h3 className="text-sm font-medium text-muted-foreground">
-            Organization
-          </h3>
-          <p className="mt-2 text-2xl font-bold">
-            {orgDetails?.name || currentOrg?.[0] || "None"}
-          </p>
-        </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <h3 className="text-sm font-medium text-muted-foreground">
+              Organization
+            </h3>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">
+              {orgDetails?.name || currentOrg?.[0] || "None"}
+            </p>
+          </CardContent>
+        </Card>
 
-        <div className="rounded-lg border bg-card p-6">
-          <h3 className="text-sm font-medium text-muted-foreground">
-            Organization ID
-          </h3>
-          <p className="mt-2 font-mono text-sm text-muted-foreground">
-            {currentOrg?.[1]?.id || "N/A"}
-          </p>
-        </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <h3 className="text-sm font-medium text-muted-foreground">
+              Organization ID
+            </h3>
+          </CardHeader>
+          <CardContent>
+            <p className="font-mono text-sm text-muted-foreground">
+              {currentOrg?.[1]?.id || "N/A"}
+            </p>
+          </CardContent>
+        </Card>
 
-        <div className="rounded-lg border bg-card p-6">
-          <h3 className="text-sm font-medium text-muted-foreground">
-            Your Email
-          </h3>
-          <p className="mt-2 text-lg">{session?.user?.email}</p>
-        </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <h3 className="text-sm font-medium text-muted-foreground">
+              Your Email
+            </h3>
+          </CardHeader>
+          <CardContent>
+            <p className="text-lg">{session?.user?.email}</p>
+          </CardContent>
+        </Card>
       </div>
 
       {currentOrg && (
-        <div className="rounded-lg border bg-card p-6">
-          <h3 className="mb-2 font-semibold">Organization JWT Claims</h3>
-          <pre className="overflow-auto rounded bg-muted p-4 text-sm">
-            {JSON.stringify(session?.organization, null, 2)}
-          </pre>
-        </div>
+        <Card>
+          <CardHeader>
+            <h3 className="font-semibold">Organization JWT Claims</h3>
+          </CardHeader>
+          <CardContent>
+            <pre className="overflow-auto rounded bg-muted p-4 text-sm">
+              {JSON.stringify(session?.organization, null, 2)}
+            </pre>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

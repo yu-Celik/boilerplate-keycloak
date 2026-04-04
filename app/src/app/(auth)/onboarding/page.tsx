@@ -3,9 +3,15 @@ import type { Metadata } from "next";
 export const metadata: Metadata = { title: "Onboarding" };
 
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { auth } from "@/features/auth/lib/auth";
 import { getOnboardingState, createOrganizationAndRefresh, acceptInvitationFromOnboarding, joinOrganization } from "./actions";
-import { suggestOrgName } from "@/lib/email-domain";
+import { suggestOrgName } from "@/features/organization/lib/email-domain";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
 
 export default async function OnboardingPage({
   searchParams,
@@ -25,98 +31,92 @@ export default async function OnboardingPage({
   const suggestedName = (state.alreadyMember || state.existingOrg) ? "" : (suggestOrgName(state.email) ?? "");
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
-      <div className="w-full max-w-md space-y-6 rounded-lg border bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-gray-950">
-        <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-bold">
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <Card className="w-full max-w-md shadow-sm">
+        <CardHeader className="text-center space-y-1">
+          <CardTitle className="text-2xl">
             {state.alreadyMember
               ? "Nouvelle organisation"
               : `Bienvenue ${session.user.name ?? ""} !`}
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          </CardTitle>
+          <CardDescription>
             {state.alreadyMember
               ? "Créez une nouvelle organisation."
               : "Créez votre espace de travail pour commencer."}
-          </p>
-        </div>
-
-        {/* Pending invitations */}
-        {(state.pendingInvitations?.length ?? 0) > 0 && (
-          <div className="space-y-3">
-            {state.pendingInvitations?.map((inv) => (
-              <PendingInvitationNotice
-                key={inv.invitationId}
-                orgId={inv.orgId}
-                orgName={inv.orgName}
-                invitationId={inv.invitationId}
-                role={inv.role}
-              />
-            ))}
-          </div>
-        )}
-
-        {state.existingOrg && !state.alreadyMember ? (
-          <ExistingOrgNotice
-            orgId={state.existingOrg.id}
-            orgName={state.existingOrg.name}
-            autoJoinAvailable={state.autoJoinAvailable}
-          />
-        ) : null}
-
-        {/* Separator when invitations exist */}
-        {(state.pendingInvitations?.length ?? 0) > 0 && (
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Pending invitations */}
+          {(state.pendingInvitations?.length ?? 0) > 0 && (
+            <div className="space-y-3">
+              {state.pendingInvitations?.map((inv) => (
+                <PendingInvitationNotice
+                  key={inv.invitationId}
+                  orgId={inv.orgId}
+                  orgName={inv.orgName}
+                  invitationId={inv.invitationId}
+                  role={inv.role}
+                />
+              ))}
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-gray-500 dark:bg-gray-950 dark:text-gray-400">
-                ou créez une organisation
-              </span>
-            </div>
-          </div>
-        )}
-
-        {error === "org_exists" && (
-          <p className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
-            Ce nom d&apos;organisation est déjà pris. Choisissez un autre nom.
-          </p>
-        )}
-
-        <form action={createOrganizationAndRefresh} className="space-y-4">
-          <div className="space-y-2">
-            <label
-              htmlFor="orgName"
-              className="text-sm font-medium leading-none"
-            >
-              Nom de l&apos;organisation
-            </label>
-            <input
-              id="orgName"
-              name="orgName"
-              type="text"
-              defaultValue={suggestedName}
-              required
-              className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 dark:border-gray-800 dark:bg-gray-950 dark:ring-offset-gray-950 dark:placeholder:text-gray-400 dark:focus-visible:ring-gray-300"
-              placeholder="Nom de votre organisation"
-            />
-          </div>
-
-          {state.isPublic && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Votre adresse email utilise un domaine public. Votre
-              organisation sera créée sans domaine associé.
-            </p>
           )}
 
-          <button
-            type="submit"
-            className="inline-flex h-10 w-full items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white ring-offset-white transition-colors hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-200 dark:focus-visible:ring-gray-300"
-          >
-            Créer mon espace
-          </button>
-        </form>
-      </div>
+          {state.existingOrg && !state.alreadyMember ? (
+            <ExistingOrgNotice
+              orgId={state.existingOrg.id}
+              orgName={state.existingOrg.name}
+              autoJoinAvailable={state.autoJoinAvailable}
+            />
+          ) : null}
+
+          {/* Separator when invitations exist */}
+          {(state.pendingInvitations?.length ?? 0) > 0 && (
+            <div className="relative">
+              <Separator />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="bg-card px-2 text-xs uppercase text-muted-foreground">
+                  ou créez une organisation
+                </span>
+              </div>
+            </div>
+          )}
+
+          {error === "org_exists" && (
+            <Alert variant="destructive">
+              <AlertDescription>
+                Ce nom d&apos;organisation est déjà pris. Choisissez un autre nom.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <form action={createOrganizationAndRefresh} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="orgName">
+                Nom de l&apos;organisation
+              </Label>
+              <Input
+                id="orgName"
+                name="orgName"
+                type="text"
+                defaultValue={suggestedName}
+                required
+                placeholder="Nom de votre organisation"
+              />
+            </div>
+
+            {state.isPublic && (
+              <p className="text-xs text-muted-foreground">
+                Votre adresse email utilise un domaine public. Votre
+                organisation sera créée sans domaine associé.
+              </p>
+            )}
+
+            <Button type="submit" className="w-full">
+              Créer mon espace
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -133,24 +133,25 @@ function PendingInvitationNotice({
   role: string;
 }) {
   return (
-    <div className="rounded-md border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950">
-      <p className="text-sm text-green-800 dark:text-green-200">
-        Vous êtes invité à rejoindre <strong>{orgName}</strong>
-        {" "}en tant que <strong>{role}</strong>
-      </p>
-      <div className="mt-3">
+    <Alert className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
+      <AlertDescription className="space-y-3">
+        <p className="text-sm text-green-800 dark:text-green-200">
+          Vous êtes invité à rejoindre <strong>{orgName}</strong>
+          {" "}en tant que <strong>{role}</strong>
+        </p>
         <form action={acceptInvitationFromOnboarding}>
           <input type="hidden" name="orgId" value={orgId} />
           <input type="hidden" name="invitationId" value={invitationId} />
-          <button
+          <Button
             type="submit"
-            className="inline-flex h-8 items-center rounded-md bg-green-600 px-3 text-xs font-medium text-white hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
+            size="sm"
+            className="bg-green-600 hover:bg-green-700 text-white dark:bg-green-700 dark:hover:bg-green-600"
           >
             Accepter l&apos;invitation
-          </button>
+          </Button>
         </form>
-      </div>
-    </div>
+      </AlertDescription>
+    </Alert>
   );
 }
 
@@ -164,31 +165,34 @@ function ExistingOrgNotice({
   autoJoinAvailable: boolean;
 }) {
   return (
-    <div className="rounded-md border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950">
-      <p className="text-sm text-blue-800 dark:text-blue-200">
-        Une organisation <strong>{orgName}</strong> existe déjà pour
-        votre domaine email.
-      </p>
-      <div className="mt-3 flex gap-2">
-        {autoJoinAvailable ? (
-          <form action={joinOrganization}>
-            <input type="hidden" name="orgId" value={orgId} />
-            <button
-              type="submit"
-              className="inline-flex h-8 items-center rounded-md bg-blue-600 px-3 text-xs font-medium text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
-            >
-              Rejoindre
-            </button>
-          </form>
-        ) : (
-          <span className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-            Contactez un administrateur pour rejoindre cette organisation.
+    <Alert className="border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950">
+      <AlertDescription className="space-y-3">
+        <p className="text-sm text-blue-800 dark:text-blue-200">
+          Une organisation <strong>{orgName}</strong> existe déjà pour
+          votre domaine email.
+        </p>
+        <div className="flex gap-2 items-center flex-wrap">
+          {autoJoinAvailable ? (
+            <form action={joinOrganization}>
+              <input type="hidden" name="orgId" value={orgId} />
+              <Button
+                type="submit"
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-700 dark:hover:bg-blue-600"
+              >
+                Rejoindre
+              </Button>
+            </form>
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              Contactez un administrateur pour rejoindre cette organisation.
+            </span>
+          )}
+          <span className="text-xs text-muted-foreground">
+            ou créez votre propre espace ci-dessous
           </span>
-        )}
-        <span className="flex items-center text-xs text-gray-500">
-          ou créez votre propre espace ci-dessous
-        </span>
-      </div>
-    </div>
+        </div>
+      </AlertDescription>
+    </Alert>
   );
 }

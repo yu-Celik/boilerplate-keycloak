@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 export default function GlobalError({
   error,
   reset,
@@ -9,18 +11,13 @@ export default function GlobalError({
 }) {
   return (
     <html>
-      <body className="flex min-h-screen items-center justify-center bg-gray-50">
+      <body className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center space-y-4">
           <h1 className="text-2xl font-bold">Erreur critique</h1>
-          <p className="text-gray-500">
+          <p className="text-muted-foreground">
             {error.message || "Une erreur inattendue est survenue."}
           </p>
-          <button
-            onClick={reset}
-            className="rounded-md bg-gray-900 px-4 py-2 text-sm text-white hover:bg-gray-800"
-          >
-            Réessayer
-          </button>
+          <Button onClick={reset}>Réessayer</Button>
         </div>
       </body>
     </html>

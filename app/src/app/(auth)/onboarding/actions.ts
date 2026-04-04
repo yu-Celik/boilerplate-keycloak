@@ -1,27 +1,30 @@
 "use server";
 
-import { auth, signIn } from "@/lib/auth";
+import { auth, signIn } from "@/features/auth/lib/auth";
 import { redirect } from "next/navigation";
 import {
   createOrganization,
-  addOrgMember,
   deleteOrganization,
   searchOrgByDomain,
   getUserOrganizations,
-  getUserByEmail,
+  isAutoJoinEnabled,
+  hasVerifiedDomain,
+} from "@/features/organization/lib/organization-admin";
+import {
+  addOrgMember,
   createOrgGroup,
   addMemberToGroup,
   getOrgGroups,
+} from "@/features/members/lib/members-admin";
+import { getUserByEmail } from "@/features/shared/lib/keycloak-user";
+import {
   listOrgInvitations,
   deleteOrgInvitation,
   getPendingInvitationsForUser,
-  isAutoJoinEnabled,
-  hasVerifiedDomain,
-} from "@/lib/keycloak-admin";
-import { getInvitationRole, deleteInvitationRole } from "@/lib/invitation-role-store";
-import { extractDomain, isPublicDomain } from "@/lib/email-domain";
-
-const DEFAULT_GROUPS = ["Admin", "Managers", "Members"] as const;
+} from "@/features/invitations/lib/invitations-admin";
+import { getInvitationRole, deleteInvitationRole } from "@/features/invitations/lib/role-store";
+import { extractDomain, isPublicDomain } from "@/features/organization/lib/email-domain";
+import { ORG_GROUPS, DEFAULT_GROUPS } from "@/features/shared/constants/org-groups";
 
 export async function getOnboardingState() {
   const session = await auth();
@@ -118,7 +121,7 @@ export async function createOrganizationAndRefresh(formData: FormData): Promise<
     try {
       const groupId = await createOrgGroup(org.id, groupName);
       // Add creator to Admin + Members groups
-      if ((groupName === "Admin" || groupName === "Members") && groupId) {
+      if ((groupName === ORG_GROUPS.ADMIN || groupName === ORG_GROUPS.MEMBERS) && groupId) {
         await addMemberToGroup(org.id, groupId, userId).catch(() => {
           console.warn(`Failed to add user to ${groupName} group`);
         });
@@ -130,7 +133,7 @@ export async function createOrganizationAndRefresh(formData: FormData): Promise<
 
   // Force re-sign-in to get a fresh token with organization:* scope
   // KC session cookie is still valid, so this is transparent to the user
-  await signIn("keycloak", { redirectTo: "/" });
+  await signIn("keycloak", { redirectTo: "/settings?welcome=true" });
 }
 
 export async function acceptInvitationFromOnboarding(formData: FormData): Promise<void> {
@@ -161,11 +164,11 @@ export async function acceptInvitationFromOnboarding(formData: FormData): Promis
 
   // Assign the role/group chosen at invitation time
   const role = await getInvitationRole(orgId, session.user.email).catch(() => null);
-  const targetRole = role ?? "Members";
+  const targetRole = role ?? ORG_GROUPS.MEMBERS;
   try {
     const groups = await getOrgGroups(orgId);
     const targetGroup = groups.find((g) => g.name === targetRole);
-    const membersGroup = groups.find((g) => g.name === "Members");
+    const membersGroup = groups.find((g) => g.name === ORG_GROUPS.MEMBERS);
     if (targetGroup) {
       await addMemberToGroup(orgId, targetGroup.id, kcUser.id);
     }
@@ -219,7 +222,7 @@ export async function joinOrganization(formData: FormData): Promise<void> {
   // Assign to Members group
   try {
     const groups = await getOrgGroups(orgId);
-    const membersGroup = groups.find((g) => g.name === "Members");
+    const membersGroup = groups.find((g) => g.name === ORG_GROUPS.MEMBERS);
     if (membersGroup) {
       await addMemberToGroup(orgId, membersGroup.id, kcUser.id);
     }

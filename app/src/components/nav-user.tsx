@@ -36,6 +36,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export function NavUser({
   user,
@@ -115,6 +116,15 @@ export function NavUser({
                     <BadgeCheck />
                     Mon compte
                   </a>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem asChild onSelect={(e) => e.preventDefault()}>
+                  <div className="flex items-center justify-between w-full">
+                    <span>Thème</span>
+                    <ThemeToggle />
+                  </div>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />

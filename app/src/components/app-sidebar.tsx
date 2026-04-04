@@ -4,15 +4,14 @@ import {
   LayoutDashboard,
   Users,
   Mail,
-  Contact,
-  SquareCheck,
   Shield,
+  ShieldCheck,
   Settings,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
-import { TeamSwitcher } from "@/components/team-switcher"
+import { TeamSwitcher } from "@/features/organization/components/team-switcher"
 import {
   Sidebar,
   SidebarContent,
@@ -38,16 +37,6 @@ const navItems = [
     icon: Mail,
   },
   {
-    title: "Contacts",
-    url: "/contacts",
-    icon: Contact,
-  },
-  {
-    title: "Tâches",
-    url: "/tasks",
-    icon: SquareCheck,
-  },
-  {
     title: "Rôles",
     url: "/roles",
     icon: Shield,
@@ -66,9 +55,14 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
     name: string
     email: string
   }
+  platformRole?: "platform-admin"
 }
 
-export function AppSidebar({ organizations, activeOrg, user, ...props }: AppSidebarProps) {
+export function AppSidebar({ organizations, activeOrg, user, platformRole, ...props }: AppSidebarProps) {
+  const items = platformRole === "platform-admin"
+    ? [...navItems, { title: "Admin", url: "/admin", icon: ShieldCheck }]
+    : navItems
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -78,7 +72,7 @@ export function AppSidebar({ organizations, activeOrg, user, ...props }: AppSide
         />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navItems} />
+        <NavMain items={items} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />

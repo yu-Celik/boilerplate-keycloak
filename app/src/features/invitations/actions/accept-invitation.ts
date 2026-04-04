@@ -1,15 +1,12 @@
 "use server";
 
-import { auth, signIn } from "@/lib/auth";
-import {
-  addOrgMember,
-  deleteOrgInvitation,
-  getUserByEmail,
-  listOrgInvitations,
-  getOrgGroups,
-  addMemberToGroup,
-} from "@/lib/keycloak-admin";
-import { getInvitationRole, deleteInvitationRole } from "@/lib/invitation-role-store";
+import { auth, signIn } from "@/features/auth/lib/auth";
+import { ORG_GROUPS } from "@/features/shared/constants/org-groups";
+import { addOrgMember, getOrgGroups, addMemberToGroup } from "@/features/members/lib/members-admin";
+import { getUserByEmail } from "@/features/shared/lib/keycloak-user";
+import { listOrgInvitations, deleteOrgInvitation } from "@/features/invitations/lib/invitations-admin";
+import { getInvitationRole, deleteInvitationRole } from "@/features/invitations/lib/role-store";
+
 export async function acceptInvitation(formData: FormData) {
   const session = await auth();
   if (!session?.user?.email) throw new Error("Not authenticated");
@@ -38,11 +35,11 @@ export async function acceptInvitation(formData: FormData) {
 
   // Assign the role/group chosen at invitation time
   const role = await getInvitationRole(orgId, session.user.email).catch(() => null);
-  const targetRole = role ?? "Members";
+  const targetRole = role ?? ORG_GROUPS.MEMBERS;
   try {
     const groups = await getOrgGroups(orgId);
     const targetGroup = groups.find((g) => g.name === targetRole);
-    const membersGroup = groups.find((g) => g.name === "Members");
+    const membersGroup = groups.find((g) => g.name === ORG_GROUPS.MEMBERS);
     if (targetGroup) {
       await addMemberToGroup(orgId, targetGroup.id, kcUser.id);
     }

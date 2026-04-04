@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { signOut, auth } from "@/lib/auth";
+import { signOut, auth } from "@/features/auth/lib/auth";
 
 // POST: Destroy NextAuth session AND return KC logout URL with id_token_hint
 // The id_token never leaves the server — it's extracted here and returned as a URL only

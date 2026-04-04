@@ -19,7 +19,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { switchOrg } from "@/app/(dashboard)/actions"
+import { switchOrg } from "@/features/organization/actions/switch-org"
 
 interface TeamSwitcherProps {
   organizations: Record<string, { id: string; groups?: string[] }>

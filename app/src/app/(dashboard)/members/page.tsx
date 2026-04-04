@@ -1,6 +1,15 @@
-import { getActiveOrgId, getAllOrgIds } from "@/lib/active-org";
-import { listOrgMembers } from "@/lib/keycloak-admin";
-import type { OrgMember } from "@/types";
+import { getActiveOrgId, getAllOrgIds } from "@/features/organization/lib/active-org";
+import { listOrgMembers } from "@/features/members/lib/members-admin";
+import type { OrgMember } from "@/features/members/types";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 export default async function MembersPage() {
   const orgId = await getActiveOrgId();
@@ -38,55 +47,47 @@ export default async function MembersPage() {
       </div>
 
       <div className="rounded-lg border">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b bg-muted/50">
-              <th className="px-4 py-3 text-left text-sm font-medium">
-                Nom
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium">
-                Email
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium">
-                Statut
-              </th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nom</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Statut</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {members.length === 0 ? (
-              <tr>
-                <td
+              <TableRow>
+                <TableCell
                   colSpan={3}
-                  className="px-4 py-8 text-center text-muted-foreground"
+                  className="text-center text-muted-foreground py-8"
                 >
                   Aucun membre trouvé
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               members.map((member) => (
-                <tr key={member.id} className="border-b">
-                  <td className="px-4 py-3 text-sm">
+                <TableRow key={member.id}>
+                  <TableCell className="text-sm">
                     {member.firstName} {member.lastName}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
                     {member.email}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        member.enabled
-                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                          : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                      }`}
-                    >
-                      {member.enabled ? "Actif" : "Désactivé"}
-                    </span>
-                  </td>
-                </tr>
+                  </TableCell>
+                  <TableCell>
+                    {member.enabled ? (
+                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                        Actif
+                      </Badge>
+                    ) : (
+                      <Badge variant="destructive">Désactivé</Badge>
+                    )}
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

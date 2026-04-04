@@ -1,9 +1,28 @@
-import { getActiveOrgId, getAllOrgIds } from "@/lib/active-org";
-import { listOrgInvitations } from "@/lib/keycloak-admin";
-import { getInvitationRole } from "@/lib/invitation-role-store";
+import { getActiveOrgId, getAllOrgIds } from "@/features/organization/lib/active-org";
+import { ORG_GROUPS } from "@/features/shared/constants/org-groups";
+import { listOrgInvitations } from "@/features/invitations/lib/invitations-admin";
+import { getInvitationRole } from "@/features/invitations/lib/role-store";
 import { inviteUser, revokeInvitation } from "./actions";
-import { RevokeForm } from "./revoke-form";
-import type { OrgInvitation } from "@/types";
+import { RevokeForm } from "@/features/invitations/components/revoke-form";
+import type { OrgInvitation } from "@/features/invitations/types";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default async function InvitationsPage() {
   const orgId = await getActiveOrgId();
@@ -28,7 +47,7 @@ export default async function InvitationsPage() {
   const invitations = await Promise.all(
     rawInvitations.map(async (inv) => {
       const role = await getInvitationRole(inv.organizationId, inv.email).catch(() => null);
-      return { ...inv, role: role ?? "Members" };
+      return { ...inv, role: role ?? ORG_GROUPS.MEMBERS };
     })
   );
 
@@ -44,28 +63,24 @@ export default async function InvitationsPage() {
       {/* Invite form — only when a specific org is selected */}
       {orgId ? (
         <form action={inviteUser} className="flex gap-3">
-          <input
+          <Input
             type="email"
             name="email"
             placeholder="collaborateur@exemple.com"
             required
-            className="flex-1 rounded-md border bg-background px-4 py-2 text-sm"
+            className="flex-1"
           />
-          <select
-            name="role"
-            defaultValue="Members"
-            className="rounded-md border bg-background px-3 py-2 text-sm"
-          >
-            <option value="Members">Membre</option>
-            <option value="Managers">Manager</option>
-            <option value="Admin">Admin</option>
-          </select>
-          <button
-            type="submit"
-            className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
-          >
-            Envoyer
-          </button>
+          <Select name="role" defaultValue={ORG_GROUPS.MEMBERS}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ORG_GROUPS.MEMBERS}>Membre</SelectItem>
+              <SelectItem value={ORG_GROUPS.MANAGERS}>Manager</SelectItem>
+              <SelectItem value={ORG_GROUPS.ADMIN}>Admin</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button type="submit">Envoyer</Button>
         </form>
       ) : (
         <p className="text-sm text-muted-foreground">
@@ -75,68 +90,53 @@ export default async function InvitationsPage() {
 
       {/* Invitations list */}
       <div className="rounded-lg border">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b bg-muted/50">
-              <th className="px-4 py-3 text-left text-sm font-medium">
-                Email
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium">
-                Rôle
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium">
-                Statut
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium">
-                Envoyée le
-              </th>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Email</TableHead>
+              <TableHead>Rôle</TableHead>
+              <TableHead>Statut</TableHead>
+              <TableHead>Envoyée le</TableHead>
               {orgId && (
-                <th className="px-4 py-3 text-right text-sm font-medium">
-                  Actions
-                </th>
+                <TableHead className="text-right">Actions</TableHead>
               )}
-            </tr>
-          </thead>
-          <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {invitations.length === 0 ? (
-              <tr>
-                <td
+              <TableRow>
+                <TableCell
                   colSpan={orgId ? 5 : 4}
-                  className="px-4 py-8 text-center text-muted-foreground"
+                  className="text-center text-muted-foreground py-8"
                 >
                   Aucune invitation envoyée
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               invitations.map((inv) => (
-                <tr key={inv.id} className="border-b">
-                  <td className="px-4 py-3 text-sm">{inv.email}</td>
-                  <td className="px-4 py-3 text-sm">{inv.role}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        inv.status === "PENDING"
-                          ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                          : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                      }`}
-                    >
-                      {inv.status === "PENDING" ? "En attente" : "Expirée"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                <TableRow key={inv.id}>
+                  <TableCell className="text-sm">{inv.email}</TableCell>
+                  <TableCell className="text-sm">{inv.role}</TableCell>
+                  <TableCell>
+                    {inv.status === "PENDING" ? (
+                      <Badge variant="outline">En attente</Badge>
+                    ) : (
+                      <Badge variant="destructive">Expirée</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
                     {new Date(inv.sentDate * 1000).toLocaleDateString("fr-FR")}
-                  </td>
+                  </TableCell>
                   {orgId && (
-                    <td className="px-4 py-3 text-right">
-
+                    <TableCell className="text-right">
                       <RevokeForm action={revokeInvitation} invitationId={inv.id} />
-                    </td>
+                    </TableCell>
                   )}
-                </tr>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

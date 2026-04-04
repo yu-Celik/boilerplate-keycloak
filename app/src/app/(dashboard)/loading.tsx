@@ -1,17 +1,19 @@
+import { Skeleton } from "@/components/ui/skeleton";
+
 export default function DashboardLoading() {
   return (
-    <div className="space-y-6 animate-pulse">
-      <div className="h-8 w-48 rounded bg-muted" />
+    <div className="space-y-6">
+      <Skeleton className="h-8 w-48" />
       <div className="space-y-3">
-        <div className="h-4 w-full rounded bg-muted" />
-        <div className="h-4 w-3/4 rounded bg-muted" />
-        <div className="h-4 w-1/2 rounded bg-muted" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-4 w-1/2" />
       </div>
       <div className="rounded-md border p-4">
         <div className="space-y-3">
-          <div className="h-10 rounded bg-muted" />
-          <div className="h-10 rounded bg-muted" />
-          <div className="h-10 rounded bg-muted" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
         </div>
       </div>
     </div>

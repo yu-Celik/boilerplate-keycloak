@@ -1,13 +1,13 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/features/auth/lib/auth";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { AppSidebar } from "@/components/app-sidebar";
-import { PendingInvitationsBanner } from "@/components/pending-invitations-banner";
+import { PendingInvitationsBanner } from "@/features/invitations/components/pending-invitations-banner";
 import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar";
-import { getPendingInvitationsForUser } from "@/lib/keycloak-admin";
+import { getPendingInvitationsForUser } from "@/features/invitations/lib/invitations-admin";
 
 export default async function DashboardLayout({
   children,
@@ -48,10 +48,11 @@ export default async function DashboardLayout({
           name: session.user.name ?? "",
           email: session.user.email ?? "",
         }}
+        platformRole={session.platformRole}
       />
       <SidebarInset>
         <PendingInvitationsBanner invitations={pendingInvitations} />
-        <div className="mx-auto max-w-5xl p-6">{children}</div>
+        <div className="mx-auto max-w-5xl p-6 border border-border/50 shadow-sm rounded-lg">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

@@ -1,12 +1,10 @@
 "use server";
 
-import { auth } from "@/lib/auth";
-import { getActiveOrgId } from "@/lib/active-org";
-import {
-  getOrganization,
-  updateOrganization,
-  assertOrgRole,
-} from "@/lib/keycloak-admin";
+import { auth } from "@/features/auth/lib/auth";
+import { getActiveOrgId } from "@/features/organization/lib/active-org";
+import { getOrganization, updateOrganization } from "@/features/organization/lib/organization-admin";
+import { assertOrgRole } from "@/features/members/lib/members-admin";
+import { ORG_GROUPS } from "@/features/shared/constants/org-groups";
 import { revalidatePath } from "next/cache";
 import { randomUUID } from "node:crypto";
 import { resolveTxt } from "node:dns/promises";
@@ -18,7 +16,7 @@ export async function toggleAutoJoin() {
   const orgId = await getActiveOrgId();
   if (!orgId) throw new Error("Aucune organisation sélectionnée");
 
-  await assertOrgRole(orgId, session.user.email, ["Admin"]);
+  await assertOrgRole(orgId, session.user.email, [ORG_GROUPS.ADMIN]);
 
   const org = await getOrganization(orgId);
   const currentValue = org.attributes?.autoJoin?.[0] === "true";
@@ -43,7 +41,7 @@ export async function addDomain(formData: FormData) {
   const orgId = await getActiveOrgId();
   if (!orgId) throw new Error("Aucune organisation sélectionnée");
 
-  await assertOrgRole(orgId, session.user.email, ["Admin"]);
+  await assertOrgRole(orgId, session.user.email, [ORG_GROUPS.ADMIN]);
 
   const org = await getOrganization(orgId);
 
@@ -79,7 +77,7 @@ export async function verifyDomain() {
   const orgId = await getActiveOrgId();
   if (!orgId) throw new Error("Aucune organisation sélectionnée");
 
-  await assertOrgRole(orgId, session.user.email, ["Admin"]);
+  await assertOrgRole(orgId, session.user.email, [ORG_GROUPS.ADMIN]);
 
   const org = await getOrganization(orgId);
   const domain = org.domains?.[0];
@@ -123,7 +121,7 @@ export async function removeDomain() {
   const orgId = await getActiveOrgId();
   if (!orgId) throw new Error("Aucune organisation sélectionnée");
 
-  await assertOrgRole(orgId, session.user.email, ["Admin"]);
+  await assertOrgRole(orgId, session.user.email, [ORG_GROUPS.ADMIN]);
 
   const org = await getOrganization(orgId);
 

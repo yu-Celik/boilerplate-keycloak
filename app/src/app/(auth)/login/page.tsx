@@ -1,6 +1,6 @@
-import { auth, signOut } from "@/lib/auth";
+import { auth, signOut } from "@/features/auth/lib/auth";
 import { redirect } from "next/navigation";
-import { LoginRedirect } from "./login-redirect";
+import { LoginRedirect } from "@/features/auth/components/login-redirect";
 
 export default async function LoginPage({
   searchParams,

@@ -1,6 +1,16 @@
-import { getActiveOrgId, getAllOrgIds } from "@/lib/active-org";
-import { listOrgMembers, getOrgGroups, listGroupMembers } from "@/lib/keycloak-admin";
-import type { OrgMember, OrgGroup } from "@/types";
+import { getActiveOrgId, getAllOrgIds } from "@/features/organization/lib/active-org";
+import { ORG_GROUPS } from "@/features/shared/constants/org-groups";
+import { listOrgMembers, getOrgGroups, listGroupMembers } from "@/features/members/lib/members-admin";
+import type { OrgMember, OrgGroup } from "@/features/members/types";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 async function getMembersWithGroups(orgId: string) {
   const [members, groups]: [OrgMember[], OrgGroup[]] = await Promise.all([
@@ -67,40 +77,34 @@ export default async function RolesPage() {
       </div>
 
       <div className="rounded-lg border">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b bg-muted/50">
-              <th className="px-4 py-3 text-left text-sm font-medium">
-                Membre
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium">
-                Email
-              </th>
-              <th className="px-4 py-3 text-left text-sm font-medium">
-                Rôles
-              </th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Membre</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Rôles</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {membersWithGroups.length === 0 ? (
-              <tr>
-                <td
+              <TableRow>
+                <TableCell
                   colSpan={3}
-                  className="px-4 py-8 text-center text-muted-foreground"
+                  className="text-center text-muted-foreground py-8"
                 >
                   Aucun membre trouvé
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               membersWithGroups.map((member) => (
-                <tr key={member.id} className="border-b">
-                  <td className="px-4 py-3 text-sm">
+                <TableRow key={member.id}>
+                  <TableCell className="text-sm">
                     {member.firstName} {member.lastName}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
                     {member.email}
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {member.groups.length === 0 ? (
                         <span className="text-sm text-muted-foreground">
@@ -108,27 +112,27 @@ export default async function RolesPage() {
                         </span>
                       ) : (
                         member.groups.map((group) => (
-                          <span
+                          <Badge
                             key={group}
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                              group === "Admin"
+                            className={
+                              group === ORG_GROUPS.ADMIN
                                 ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                                : group === "Managers"
+                                : group === ORG_GROUPS.MANAGERS
                                   ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                                   : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
-                            }`}
+                            }
                           >
                             {group}
-                          </span>
+                          </Badge>
                         ))
                       )}
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

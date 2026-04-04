@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createRemoteJWKSet, jwtVerify } from "jose";
-import { sessionStore } from "@/lib/auth";
+import { sessionStore } from "@/features/auth/lib/auth";
 
 let cachedJWKS: ReturnType<typeof createRemoteJWKSet> | null = null;
 

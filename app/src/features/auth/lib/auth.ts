@@ -1,6 +1,15 @@
 import NextAuth from "next-auth";
 import type { JWT } from "next-auth/jwt";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function parseJwtPayload(token: string): Record<string, any> | null {
+  try {
+    return JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
+  } catch {
+    return null;
+  }
+}
+
 // In-memory session store for backchannel logout
 // ⚠️ WARNING: This Map is NOT shared across Edge isolates.
 // In production, replace with a persistent store (Redis, Vercel KV, etc.)
@@ -95,6 +104,11 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
           sessionStore.set(account.providerAccountId, token.sub as string);
         }
 
+        // Detect platform-admin realm role from the KC id_token
+        const idPayload = parseJwtPayload(account.id_token as string);
+        const realmRoles: string[] = idPayload?.realm_access?.roles ?? [];
+        token.platformRole = realmRoles.includes("platform-admin") ? "platform-admin" : undefined;
+
         return token;
       }
 
@@ -102,23 +116,27 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
         return token;
       }
 
-      return refreshAccessToken(token);
+      const refreshed = await refreshAccessToken(token);
+
+      // Re-detect platform-admin from refreshed id_token
+      if (refreshed.idToken && !refreshed.error) {
+        const idPayload = parseJwtPayload(refreshed.idToken as string);
+        const realmRoles: string[] = idPayload?.realm_access?.roles ?? [];
+        refreshed.platformRole = realmRoles.includes("platform-admin") ? "platform-admin" : undefined;
+      }
+
+      return refreshed;
     },
     async session({ session, token }) {
       session.error = token.error;
+      session.platformRole = token.platformRole;
       // idToken for KC logout (id_token_hint skips confirmation page)
       // Only accessible server-side via auth() — NOT serialized to client useSession()
       (session as unknown as Record<string, unknown>).idToken = token.idToken;
 
       if (token.accessToken) {
-        try {
-          const payload = JSON.parse(
-            Buffer.from(
-              (token.accessToken as string).split(".")[1],
-              "base64"
-            ).toString()
-          );
-
+        const payload = parseJwtPayload(token.accessToken as string);
+        if (payload) {
           // Populate user info from KC access token claims
           if (session.user) {
             session.user.id = payload.sub ?? token.sub ?? "";
@@ -143,8 +161,6 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
               session.orgRole = "member";
             }
           }
-        } catch {
-          // Token parsing failed
         }
       }
 

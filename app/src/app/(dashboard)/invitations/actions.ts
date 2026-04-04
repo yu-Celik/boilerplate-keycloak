@@ -1,12 +1,12 @@
 "use server";
 
-import { auth } from "@/lib/auth";
-import { getActiveOrgId } from "@/lib/active-org";
-import { sendOrgInvitation, deleteOrgInvitation, listOrgInvitations, assertOrgRole } from "@/lib/keycloak-admin";
-import { saveInvitationRole, deleteInvitationRole } from "@/lib/invitation-role-store";
+import { auth } from "@/features/auth/lib/auth";
+import { getActiveOrgId } from "@/features/organization/lib/active-org";
+import { sendOrgInvitation, deleteOrgInvitation, listOrgInvitations } from "@/features/invitations/lib/invitations-admin";
+import { assertOrgRole } from "@/features/members/lib/members-admin";
+import { saveInvitationRole, deleteInvitationRole } from "@/features/invitations/lib/role-store";
+import { DEFAULT_GROUPS, ORG_GROUPS, type OrgGroupName } from "@/features/shared/constants/org-groups";
 import { redirect } from "next/navigation";
-
-const VALID_ROLES = ["Admin", "Managers", "Members"] as const;
 
 export async function inviteUser(formData: FormData) {
   const session = await auth();
@@ -16,7 +16,7 @@ export async function inviteUser(formData: FormData) {
   if (!email) throw new Error("Email requis");
 
   const role = formData.get("role") as string;
-  if (!role || !VALID_ROLES.includes(role as (typeof VALID_ROLES)[number])) {
+  if (!role || !DEFAULT_GROUPS.includes(role as OrgGroupName)) {
     throw new Error("Rôle invalide");
   }
 
@@ -24,7 +24,7 @@ export async function inviteUser(formData: FormData) {
   if (!orgId) throw new Error("Sélectionnez une organisation");
 
   // SECURITY: Verify caller is Admin or Manager
-  await assertOrgRole(orgId, session.user.email, ["Admin", "Managers"]);
+  await assertOrgRole(orgId, session.user.email, [ORG_GROUPS.ADMIN, ORG_GROUPS.MANAGERS]);
 
   await sendOrgInvitation(orgId, email);
   await saveInvitationRole(orgId, email, role);
@@ -42,7 +42,7 @@ export async function revokeInvitation(formData: FormData) {
   if (!orgId) throw new Error("Sélectionnez une organisation");
 
   // SECURITY: Verify caller is Admin or Manager
-  await assertOrgRole(orgId, session.user.email, ["Admin", "Managers"]);
+  await assertOrgRole(orgId, session.user.email, [ORG_GROUPS.ADMIN, ORG_GROUPS.MANAGERS]);
 
   // Get invitation email before deleting to clean up role store
   const invitations = await listOrgInvitations(orgId);

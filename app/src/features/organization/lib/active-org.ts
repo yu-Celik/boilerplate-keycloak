@@ -1,6 +1,7 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/features/auth/lib/auth";
 import { cookies } from "next/headers";
-import { getOrgByAlias, getUserOrganizations, getUserByEmail } from "@/lib/keycloak-admin";
+import { getOrgByAlias, getUserOrganizations } from "./organization-admin";
+import { getUserByEmail } from "@/features/shared/lib/keycloak-user";
 
 /**
  * Resolve the active organization ID from the cookie + session.
