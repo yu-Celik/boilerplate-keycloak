@@ -73,10 +73,12 @@ export async function assertOrgRole(
   if (!kcUser?.id) throw new Error("Utilisateur introuvable");
 
   const groups = await getOrgGroups(orgId);
-  for (const group of groups) {
-    if (!requiredGroups.includes(group.name)) continue;
-    const members = await listGroupMembers(orgId, group.id);
-    if (members.some((m) => m.id === kcUser.id)) return;
-  }
+  const matchingGroups = groups.filter((g) => requiredGroups.includes(g.name));
+
+  const results = await Promise.all(
+    matchingGroups.map((g) => listGroupMembers(orgId, g.id))
+  );
+  if (results.some((members) => members.some((m) => m.id === kcUser.id))) return;
+
   throw new Error("Accès refusé : rôle insuffisant");
 }

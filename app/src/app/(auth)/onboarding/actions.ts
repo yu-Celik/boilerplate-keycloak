@@ -116,20 +116,25 @@ export async function createOrganizationAndRefresh(formData: FormData): Promise<
     throw new Error(`Failed to add you to the organization: ${(e as Error).message}`);
   }
 
-  // Seed default groups (non-critical — log and continue on failure)
-  for (const groupName of DEFAULT_GROUPS) {
-    try {
-      const groupId = await createOrgGroup(org.id, groupName);
-      // Add creator to Admin + Members groups
-      if ((groupName === ORG_GROUPS.ADMIN || groupName === ORG_GROUPS.MEMBERS) && groupId) {
-        await addMemberToGroup(org.id, groupId, userId).catch(() => {
-          console.warn(`Failed to add user to ${groupName} group`);
-        });
-      }
-    } catch {
-      console.warn(`Failed to create org group: ${groupName}`);
+  // Seed default groups in parallel (non-critical — log and continue on failure)
+  const groupResults = await Promise.allSettled(
+    DEFAULT_GROUPS.map((name) => createOrgGroup(org.id, name).then((id) => ({ name, id })))
+  );
+
+  // Add creator to Admin + Members groups in parallel
+  const membershipPromises: Promise<void>[] = [];
+  for (const r of groupResults) {
+    if (r.status !== "fulfilled" || !r.value.id) continue;
+    const { name, id } = r.value;
+    if (name === ORG_GROUPS.ADMIN || name === ORG_GROUPS.MEMBERS) {
+      membershipPromises.push(
+        addMemberToGroup(org.id, id, userId).catch(() => {
+          console.warn(`Failed to add user to ${name} group`);
+        })
+      );
     }
   }
+  await Promise.allSettled(membershipPromises);
 
   // Force re-sign-in to get a fresh token with organization:* scope
   // KC session cookie is still valid, so this is transparent to the user

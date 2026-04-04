@@ -3,7 +3,7 @@ import type { Organization } from "@/features/organization/types";
 import { adminFetch } from "@/features/shared/lib/keycloak-client";
 import { ORG_GROUPS } from "@/features/shared/constants/org-groups";
 import { extractDomain } from "@/features/organization/lib/email-domain";
-import { getInvitationRole } from "./role-store";
+import { getInvitationRolesBatch } from "./role-store";
 
 export async function listOrgInvitations(orgId: string): Promise<OrgInvitation[]> {
   const res = await adminFetch(`/organizations/${orgId}/invitations`);
@@ -59,15 +59,26 @@ export async function getPendingInvitationsForUser(
     })
   );
 
+  // Collect matching pending invitations
+  const pending: Array<{ orgId: string; orgName: string; invitationId: string }> = [];
   for (const r of results) {
     if (r.status !== "fulfilled") continue;
     const { org, invitations } = r.value;
     for (const inv of invitations) {
       if (inv.email === email && inv.status === "PENDING") {
-        const role = await getInvitationRole(org.id, email).catch(() => null) ?? ORG_GROUPS.MEMBERS;
-        result.push({ orgId: org.id, orgName: org.name, invitationId: inv.id, role });
+        pending.push({ orgId: org.id, orgName: org.name, invitationId: inv.id });
       }
     }
+  }
+
+  // Batch role lookup (single file read)
+  const roleMap = await getInvitationRolesBatch(
+    pending.map((p) => ({ orgId: p.orgId, email }))
+  ).catch(() => new Map<string, string>());
+
+  for (const p of pending) {
+    const key = `${p.orgId}:${email.toLowerCase()}`;
+    result.push({ ...p, role: roleMap.get(key) ?? ORG_GROUPS.MEMBERS });
   }
 
   return result;

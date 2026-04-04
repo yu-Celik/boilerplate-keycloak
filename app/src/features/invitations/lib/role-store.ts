@@ -50,6 +50,18 @@ export async function getInvitationRole(
   return store[makeKey(orgId, email)] ?? null;
 }
 
+export async function getInvitationRolesBatch(
+  keys: Array<{ orgId: string; email: string }>
+): Promise<Map<string, string>> {
+  const store = await readStore();
+  const result = new Map<string, string>();
+  for (const { orgId, email } of keys) {
+    const role = store[makeKey(orgId, email)];
+    if (role) result.set(makeKey(orgId, email), role);
+  }
+  return result;
+}
+
 export async function deleteInvitationRole(
   orgId: string,
   email: string

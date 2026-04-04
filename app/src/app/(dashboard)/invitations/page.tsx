@@ -1,7 +1,7 @@
 import { getActiveOrgId, getAllOrgIds } from "@/features/organization/lib/active-org";
 import { ORG_GROUPS } from "@/features/shared/constants/org-groups";
 import { listOrgInvitations } from "@/features/invitations/lib/invitations-admin";
-import { getInvitationRole } from "@/features/invitations/lib/role-store";
+import { getInvitationRolesBatch } from "@/features/invitations/lib/role-store";
 import { inviteUser, revokeInvitation } from "./actions";
 import { RevokeForm } from "@/features/invitations/components/revoke-form";
 import type { OrgInvitation } from "@/features/invitations/types";
@@ -43,13 +43,14 @@ export default async function InvitationsPage() {
     }
   }
 
-  // Enrich invitations with stored role
-  const invitations = await Promise.all(
-    rawInvitations.map(async (inv) => {
-      const role = await getInvitationRole(inv.organizationId, inv.email).catch(() => null);
-      return { ...inv, role: role ?? ORG_GROUPS.MEMBERS };
-    })
-  );
+  // Enrich invitations with stored role (single file read)
+  const roleMap = await getInvitationRolesBatch(
+    rawInvitations.map((inv) => ({ orgId: inv.organizationId, email: inv.email }))
+  ).catch(() => new Map<string, string>());
+  const invitations = rawInvitations.map((inv) => {
+    const key = `${inv.organizationId}:${inv.email.toLowerCase()}`;
+    return { ...inv, role: roleMap.get(key) ?? ORG_GROUPS.MEMBERS };
+  });
 
   return (
     <div className="space-y-6">
