@@ -47,6 +47,12 @@
       {
         "name": "admin",
         "description": "Realm administrator"
+      },
+      {
+        "name": "platform-admin",
+        "description": "Platform super-administrator",
+        "composite": false,
+        "clientRole": false
       }
     ],
     "client": {

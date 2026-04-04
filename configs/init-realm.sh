@@ -86,6 +86,16 @@ if [ -n "$AC_CLIENT_ID" ]; then
   echo "Account-console scopes fixed."
 fi
 
+# Assign platform-admin realm role to the seed user
+echo "Assigning platform-admin role to user@demo.com..."
+PLATFORM_ADMIN_ROLE_JSON=$($KCADM get roles -r "$REALM" -q name=platform-admin 2>/dev/null | python3 -c "import sys,json;roles=json.load(sys.stdin);print(json.dumps(next((r for r in roles if r['name']=='platform-admin'), None)))" 2>/dev/null || true)
+if [ -n "$PLATFORM_ADMIN_ROLE_JSON" ] && [ "$PLATFORM_ADMIN_ROLE_JSON" != "null" ] && [ -n "$USER_ID" ]; then
+  $KCADM create "users/$USER_ID/role-mappings/realm" -r "$REALM" -b "[$PLATFORM_ADMIN_ROLE_JSON]" 2>/dev/null || true
+  echo "platform-admin role assigned."
+else
+  echo "Could not assign platform-admin role (role or user not found)."
+fi
+
 echo "=== Realm initialization complete ==="
 echo "  Organization: demo-org ($ORG_ID)"
 echo "  Member: user@demo.com ($USER_ID)"

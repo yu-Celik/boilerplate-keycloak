@@ -1,14 +1,9 @@
 export default function Footer() {
     return (
-        <footer
-            style={{
-                textAlign: "center",
-                padding: "1rem",
-                fontSize: "0.75rem",
-                color: "var(--kc-text-secondary)"
-            }}
-        >
-            {/* Customize footer content here */}
+        <footer className="relative z-10 py-4 px-6 text-center">
+            <p className="text-xs text-muted-foreground/50 tracking-wide">
+                Secured by Keycloak
+            </p>
         </footer>
     );
 }

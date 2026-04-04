@@ -1,0 +1,78 @@
+/*
+ * Shared Blue-Gray Glassmorphism Theme Tokens
+ * Single source of truth — imported by both app/ and keycloakify/ globals.css
+ * Uses plain CSS custom properties (no Tailwind-specific syntax)
+ */
+
+:root {
+  /* Blue-gray light mode */
+  --background: 220 14% 96%;
+  --foreground: 222 47% 11%;
+  --card: 220 13% 95%;
+  --card-foreground: 222 47% 11%;
+  --primary: 221 83% 53%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 215 20% 91%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 215 20% 91%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 215 20% 91%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 215 20% 85%;
+  --input: 215 20% 85%;
+  --ring: 221 83% 53%;
+  --radius: 0.5rem;
+
+  /* Sidebar — light */
+  --sidebar-background: 220 14% 94%;
+  --sidebar-foreground: 222 47% 11%;
+  --sidebar-primary: 221 83% 53%;
+  --sidebar-primary-foreground: 210 40% 98%;
+  --sidebar-accent: 215 20% 91%;
+  --sidebar-accent-foreground: 222 47% 11%;
+  --sidebar-border: 215 20% 85%;
+  --sidebar-ring: 221 83% 53%;
+
+  /* Glassmorphism utilities — light */
+  --glass-bg: 220 14% 96% / 0.7;
+  --glass-border: 215 20% 50% / 0.08;
+  --glass-shadow: 0 4px 24px 0 hsl(221 40% 20% / 0.06);
+}
+
+.dark {
+  /* Blue-gray dark mode */
+  --background: 222 47% 6%;
+  --foreground: 210 40% 98%;
+  --card: 222 30% 10%;
+  --card-foreground: 210 40% 98%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 222 47% 6%;
+  --secondary: 215 25% 15%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 215 25% 15%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 215 25% 15%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 215 20% 18%;
+  --input: 215 20% 18%;
+  --ring: 217 91% 60%;
+
+  /* Sidebar — dark */
+  --sidebar-background: 222 40% 8%;
+  --sidebar-foreground: 210 40% 98%;
+  --sidebar-primary: 217 91% 60%;
+  --sidebar-primary-foreground: 210 40% 98%;
+  --sidebar-accent: 215 25% 15%;
+  --sidebar-accent-foreground: 210 40% 98%;
+  --sidebar-border: 215 20% 18%;
+  --sidebar-ring: 217 91% 60%;
+
+  /* Glassmorphism utilities — dark */
+  --glass-bg: 222 30% 10% / 0.6;
+  --glass-border: 215 30% 80% / 0.08;
+  --glass-shadow: 0 4px 24px 0 hsl(222 50% 3% / 0.4);
+}
