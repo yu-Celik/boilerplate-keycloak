@@ -73,6 +73,6 @@
 
   /* Glassmorphism utilities — dark */
   --glass-bg: 222 30% 10% / 0.6;
-  --glass-border: 215 30% 80% / 0.08;
+  --glass-border: 215 30% 80% / 0.15;
   --glass-shadow: 0 4px 24px 0 hsl(222 50% 3% / 0.4);
 }

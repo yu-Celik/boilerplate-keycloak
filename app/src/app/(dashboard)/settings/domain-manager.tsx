@@ -1,12 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { addDomain, verifyDomain, removeDomain } from "./actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 function SubmitButton({ children, variant = "default" }: { children: React.ReactNode; variant?: "default" | "destructive" | "outline" }) {
   const { pending } = useFormStatus();
@@ -125,9 +136,7 @@ export function DomainManager({
                   >
                     <SubmitButton>Vérifier maintenant</SubmitButton>
                   </form>
-                  <form action={removeDomain}>
-                    <SubmitButton variant="destructive">Supprimer</SubmitButton>
-                  </form>
+                  <DeleteDomainDialog action={removeDomain} label="Supprimer" />
                 </div>
               </>
             ) : (
@@ -140,11 +149,43 @@ export function DomainManager({
         )}
 
         {verified && isAdmin && (
-          <form action={removeDomain}>
-            <SubmitButton variant="destructive">Supprimer le domaine</SubmitButton>
-          </form>
+          <DeleteDomainDialog action={removeDomain} label="Supprimer le domaine" />
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function DeleteDomainDialog({ action, label }: { action: () => void; label: string }) {
+  const formRef = useRef<HTMLFormElement>(null);
+
+  return (
+    <AlertDialog>
+      <form ref={formRef} action={action} className="inline">
+        <AlertDialogTrigger asChild>
+          <Button type="button" variant="destructive" size="sm">
+            {label}
+          </Button>
+        </AlertDialogTrigger>
+      </form>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Supprimer le domaine ?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Cette action est irréversible. Le domaine sera supprimé et l&apos;auto-join désactivé.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Annuler</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() => {
+              formRef.current?.requestSubmit();
+            }}
+          >
+            Supprimer
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

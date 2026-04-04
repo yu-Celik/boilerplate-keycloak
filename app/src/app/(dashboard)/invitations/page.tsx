@@ -67,8 +67,10 @@ export default async function InvitationsPage() {
 
       {/* Invite form — only for Admin/Manager when a specific org is selected */}
       {orgId && canManageInvitations ? (
-        <form action={inviteUser} className="flex gap-3">
+        <form action={inviteUser} className="flex flex-col sm:flex-row gap-3">
+          <label htmlFor="invite-email" className="sr-only">Email</label>
           <Input
+            id="invite-email"
             type="email"
             name="email"
             placeholder="collaborateur@exemple.com"
@@ -87,7 +89,7 @@ export default async function InvitationsPage() {
               )}
             </SelectContent>
           </Select>
-          <Button type="submit">Envoyer</Button>
+          <Button type="submit" className="w-full sm:w-auto">Envoyer</Button>
         </form>
       ) : orgId ? (
         <p className="text-sm text-muted-foreground">
@@ -100,7 +102,7 @@ export default async function InvitationsPage() {
       )}
 
       {/* Invitations list */}
-      <div className="rounded-lg border">
+      <div className="rounded-lg border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -132,7 +134,7 @@ export default async function InvitationsPage() {
                     {inv.status === "PENDING" ? (
                       <Badge variant="outline">En attente</Badge>
                     ) : (
-                      <Badge variant="destructive">Expirée</Badge>
+                      <Badge variant="secondary">Expirée</Badge>
                     )}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">

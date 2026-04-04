@@ -66,4 +66,6 @@ body {
   border: 1px solid hsl(var(--glass-border));
   box-shadow: var(--glass-shadow);
   border-radius: var(--radius);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }

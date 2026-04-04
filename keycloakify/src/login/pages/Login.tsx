@@ -219,7 +219,7 @@ export default function Login(props: Props) {
                                 name="rememberMe"
                                 type="checkbox"
                                 defaultChecked={!!login.rememberMe}
-                                className="h-3.5 w-3.5 rounded border-border/60 bg-secondary/20 accent-primary cursor-pointer"
+                                className="h-4 w-4 rounded border-border/60 bg-secondary/20 accent-primary cursor-pointer ring-1 ring-border/40"
                             />
                             <label
                                 htmlFor="rememberMe"

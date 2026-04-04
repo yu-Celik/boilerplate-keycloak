@@ -76,7 +76,7 @@ export default async function RolesPage() {
         </p>
       </div>
 
-      <div className="rounded-lg border">
+      <div className="rounded-lg border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -107,7 +107,7 @@ export default async function RolesPage() {
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {member.groups.length === 0 ? (
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm text-muted-foreground italic">
                           Aucun rôle
                         </span>
                       ) : (
